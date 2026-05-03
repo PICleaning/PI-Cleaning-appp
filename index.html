@@ -452,7 +452,22 @@
       <p>Please complete all fields to clock in</p>
     </div>
 
-    <div class="form-card">
+    <!-- Returning employee banner (shown when credentials are saved) -->
+    <div id="returning-banner" style="display:none;background:rgba(29,158,117,0.1);border:1px solid rgba(29,158,117,0.35);border-radius:14px;padding:14px 16px;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:18px;">👤</span>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--white);" id="returning-name">—</div>
+            <div style="font-size:11px;color:var(--text-muted);" id="returning-id">—</div>
+          </div>
+        </div>
+        <button onclick="forgetCredentials()" style="background:none;border:none;color:var(--text-muted);font-size:11px;cursor:pointer;text-decoration:underline;">Not me?</button>
+      </div>
+      <div style="font-size:11px;color:var(--success);margin-top:4px;">✓ Credentials remembered · Expires in <span id="cred-expiry"></span></div>
+    </div>
+
+    <div class="form-card" id="details-card">
       <h3>Your Details</h3>
       <div class="field">
         <label>Full Name *</label>
@@ -486,6 +501,7 @@
           <option value="Evening">Evening</option>
           <option value="Weekend">Weekend</option>
           <option value="Casual">Casual</option>
+          <option value="Public Holiday">Public Holiday</option>
         </select>
       </div>
     </div>
@@ -528,7 +544,11 @@
       <div class="sw-label">Hours Worked Today</div>
       <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:12px;">
         <div class="status-pill" id="status-pill"><span class="dot"></span> Working</div>
+        <div class="status-pill" id="gps-tracking-pill" style="background:rgba(201,168,76,0.12);border-color:rgba(201,168,76,0.4);color:var(--gold);display:none;">
+          <span class="dot" style="background:var(--gold);animation:blink 2s ease infinite;"></span> GPS Tracking
+        </div>
       </div>
+      <div id="live-gps-display" style="font-size:10px;color:var(--text-muted);margin-top:8px;"></div>
     </div>
 
     <!-- Break Timer Card — visible only on break -->
@@ -675,6 +695,48 @@ const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzK1c7DjvGV9YEA4N4Sq
 const MAX_SHIFT_MS = 12 * 60 * 60 * 1000;
 
 // ══════════════════════════════════════════
+//  CREDENTIAL MEMORY: 7 days in ms
+// ══════════════════════════════════════════
+const CRED_KEY = 'pi_employee_creds';
+const CRED_TTL = 7 * 24 * 60 * 60 * 1000;
+
+function saveCredentials(name, id) {
+  try {
+    localStorage.setItem(CRED_KEY, JSON.stringify({ name, id, savedAt: Date.now() }));
+  } catch(e) {}
+}
+
+function loadCredentials() {
+  try {
+    const raw = localStorage.getItem(CRED_KEY);
+    if (!raw) return null;
+    const c = JSON.parse(raw);
+    if (Date.now() - c.savedAt > CRED_TTL) { localStorage.removeItem(CRED_KEY); return null; }
+    return c;
+  } catch(e) { return null; }
+}
+
+function forgetCredentials() {
+  localStorage.removeItem(CRED_KEY);
+  document.getElementById('returning-banner').style.display = 'none';
+  document.getElementById('details-card').style.display = 'block';
+  document.getElementById('emp-name').value = '';
+  document.getElementById('emp-id').value = '';
+  state._savedCreds = null;
+  checkReady();
+}
+
+function showReturningBanner(creds) {
+  document.getElementById('returning-banner').style.display = 'block';
+  document.getElementById('details-card').style.display = 'none';
+  document.getElementById('returning-name').textContent = creds.name;
+  document.getElementById('returning-id').textContent = creds.id;
+  const daysLeft = Math.ceil((CRED_TTL - (Date.now() - creds.savedAt)) / (24*60*60*1000));
+  document.getElementById('cred-expiry').textContent = `${daysLeft}d`;
+  state._savedCreds = creds;
+}
+
+// ══════════════════════════════════════════
 //  PERSISTENT STATE via localStorage
 // ══════════════════════════════════════════
 const STORAGE_KEY = 'pi_cleaning_state';
@@ -753,6 +815,12 @@ function init() {
     } else if (saved && saved.screen === 'clockedout') {
       switchScreen('clockedout');
     } else {
+      // Check for saved credentials
+      const creds = loadCredentials();
+      if (creds) {
+        showReturningBanner(creds);
+        showToast(`👋 Welcome back, ${creds.name.split(' ')[0]}!`);
+      }
       switchScreen('clockin');
     }
     updateCITime();
@@ -771,6 +839,7 @@ function restoreWorkingScreen() {
   startStopwatch();
   updateBreakUI();
   scheduleAutoClockOut();
+  startGPSTracking();
   showToast('👋 Welcome back! Your session was restored.');
 }
 
@@ -802,8 +871,9 @@ setInterval(updateCITime, 1000);
   document.getElementById(id)?.addEventListener('input', checkReady);
 });
 function checkReady() {
-  const n = document.getElementById('emp-name').value.trim();
-  const i = document.getElementById('emp-id').value.trim();
+  const creds = state._savedCreds;
+  const n = creds ? creds.name : document.getElementById('emp-name').value.trim();
+  const i = creds ? creds.id : document.getElementById('emp-id').value.trim();
   const a = document.getElementById('job-address').value.trim();
   const g = state.gps.lat !== null;
   document.getElementById('btn-ci').disabled = !(n && i && a && g);
@@ -849,11 +919,62 @@ function getJobLocation() {
 }
 
 // ══════════════════════════════════════════
+//  LIVE GPS TRACKING (while clocked in)
+// ══════════════════════════════════════════
+let gpsWatchId = null;
+let gpsUpdateInterval = null;
+
+function startGPSTracking() {
+  if (!navigator.geolocation) return;
+  const pill = document.getElementById('gps-tracking-pill');
+  if (pill) pill.style.display = 'inline-flex';
+
+  // Watch position continuously
+  gpsWatchId = navigator.geolocation.watchPosition(pos => {
+    state.liveGps = {
+      lat: pos.coords.latitude.toFixed(6),
+      lng: pos.coords.longitude.toFixed(6),
+      accuracy: Math.round(pos.coords.accuracy),
+      ts: new Date().toISOString()
+    };
+    // Update the GPS display in shift info
+    const gpsEl = document.getElementById('wi-gps');
+    if (gpsEl) gpsEl.textContent = `${state.liveGps.lat}, ${state.liveGps.lng}`;
+    const liveEl = document.getElementById('live-gps-display');
+    if (liveEl) liveEl.textContent = `📍 Live: ${state.liveGps.lat}, ${state.liveGps.lng} · ±${state.liveGps.accuracy}m`;
+  }, null, { enableHighAccuracy: true, maximumAge: 30000 });
+
+  // Send location ping to Sheets every 5 minutes
+  gpsUpdateInterval = setInterval(() => {
+    if (!state.liveGps || state.onBreak) return;
+    sendToSheets('GPS_UPDATE', {
+      type: 'GPS_UPDATE',
+      name: state.employee.name,
+      id: state.employee.id,
+      lat: state.liveGps.lat,
+      lng: state.liveGps.lng,
+      accuracy: state.liveGps.accuracy,
+      time: iso(new Date()),
+      date: dateStr(new Date())
+    });
+  }, 5 * 60 * 1000);
+}
+
+function stopGPSTracking() {
+  if (gpsWatchId !== null) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
+  if (gpsUpdateInterval) { clearInterval(gpsUpdateInterval); gpsUpdateInterval = null; }
+  const pill = document.getElementById('gps-tracking-pill');
+  if (pill) pill.style.display = 'none';
+}
+
+// ══════════════════════════════════════════
 //  CLOCK IN
 // ══════════════════════════════════════════
 function clockIn() {
-  state.employee.name = document.getElementById('emp-name').value.trim();
-  state.employee.id = document.getElementById('emp-id').value.trim();
+  // Use saved creds or form values
+  const creds = state._savedCreds;
+  state.employee.name = creds ? creds.name : document.getElementById('emp-name').value.trim();
+  state.employee.id   = creds ? creds.id   : document.getElementById('emp-id').value.trim();
   state.employee.shift = document.getElementById('shift-type').value;
   state.clockInTime = new Date();
   state.breaks = [];
@@ -862,6 +983,9 @@ function clockIn() {
   state.currentBreakStart = null;
   state.reports = [];
   state.jobs = [];
+
+  // Save credentials for 7 days
+  saveCredentials(state.employee.name, state.employee.id);
 
   const addr = document.getElementById('job-address').value.trim();
   state.jobs = [{
@@ -883,6 +1007,7 @@ function clockIn() {
   switchScreen('working');
   startStopwatch();
   scheduleAutoClockOut();
+  startGPSTracking();
   saveState();
 
   sendToSheets('CLOCK_IN', {
@@ -942,6 +1067,7 @@ function performAutoClockOut() {
     state.currentBreakStart = null;
   }
   if (swInterval) clearInterval(swInterval);
+  stopGPSTracking();
 
   const clockOutTime = new Date();
   const elapsed = Math.floor((clockOutTime - new Date(state.clockInTime)) / 1000) - state.totalBreakSecs;
@@ -1253,6 +1379,7 @@ function clockOut() {
 
   if (swInterval) clearInterval(swInterval);
   if (autoClockOutTimer) clearTimeout(autoClockOutTimer);
+  stopGPSTracking();
 
   const clockOutTime = new Date();
   const elapsed = Math.floor((clockOutTime.getTime() - new Date(state.clockInTime).getTime()) / 1000) - state.totalBreakSecs;
@@ -1291,6 +1418,7 @@ function clockOut() {
 function resetApp() {
   if (swInterval) clearInterval(swInterval);
   if (autoClockOutTimer) clearTimeout(autoClockOutTimer);
+  stopGPSTracking();
   state = {
     employee: { name:'', id:'', shift:'' },
     clockInTime: null,
@@ -1303,7 +1431,9 @@ function resetApp() {
     selectedReportType: '',
     jobGps: { lat: null, lng: null },
     photoFiles: [],
-    screen: 'clockin'
+    screen: 'clockin',
+    _savedCreds: null,
+    liveGps: null
   };
   clearState();
   document.getElementById('emp-name').value = '';
@@ -1313,6 +1443,16 @@ function resetApp() {
   document.getElementById('btn-ci').disabled = true;
   document.getElementById('sw-time').textContent = '00:00:00';
   document.getElementById('timeout-banner').classList.remove('visible');
+
+  // Reload credentials banner
+  const creds = loadCredentials();
+  if (creds) {
+    showReturningBanner(creds);
+  } else {
+    document.getElementById('returning-banner').style.display = 'none';
+    document.getElementById('details-card').style.display = 'block';
+  }
+
   switchScreen('clockin');
   updateCITime();
 }
