@@ -480,9 +480,196 @@
     padding: 14px;
     display: flex; gap: 12px; align-items: flex-start;
   }
+
+  /* ── TERMS & CONDITIONS MODAL ── */
+  #modal-tnc {
+    display: flex !important;
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0,0,0,0.92);
+    align-items: center; justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(8px);
+  }
+  #modal-tnc.hidden { display: none !important; }
+  .tnc-box {
+    background: var(--navy-mid);
+    border: 1px solid var(--gold);
+    border-radius: 20px;
+    width: 100%; max-width: 400px;
+    max-height: 88vh;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 0 60px rgba(201,168,76,0.2);
+  }
+  .tnc-header {
+    padding: 24px 24px 16px;
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+    flex-shrink: 0;
+  }
+  .tnc-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(226,75,74,0.12);
+    border: 1px solid rgba(226,75,74,0.35);
+    border-radius: 20px; padding: 4px 12px;
+    font-size: 11px; color: #e24b4a; font-weight: 600;
+    letter-spacing: 0.5px; margin-bottom: 12px;
+  }
+  .tnc-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; color: var(--white);
+    margin-bottom: 6px;
+  }
+  .tnc-title span { color: var(--gold); }
+  .tnc-subtitle { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+  .tnc-scroll {
+    flex: 1; overflow-y: auto; padding: 20px 24px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .tnc-section {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(201,168,76,0.12);
+    border-radius: 12px; padding: 14px;
+  }
+  .tnc-section-title {
+    font-size: 12px; font-weight: 700; color: var(--gold);
+    letter-spacing: 0.5px; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .tnc-section-body {
+    font-size: 12px; color: var(--text-muted); line-height: 1.7;
+  }
+  .tnc-section-body strong { color: var(--white); }
+  .tnc-warning {
+    background: rgba(226,75,74,0.07);
+    border: 1px solid rgba(226,75,74,0.25);
+    border-radius: 12px; padding: 14px;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .tnc-warning-icon { font-size: 20px; flex-shrink: 0; }
+  .tnc-warning-text { font-size: 12px; color: #e88; line-height: 1.6; }
+  .tnc-warning-text strong { color: #ffaaaa; }
+  .tnc-footer {
+    padding: 16px 24px 24px; border-top: 1px solid rgba(201,168,76,0.15);
+    flex-shrink: 0;
+  }
+  .tnc-checkbox-row {
+    display: flex; align-items: flex-start; gap: 12px;
+    margin-bottom: 16px;
+    background: rgba(201,168,76,0.06);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 12px; padding: 12px 14px;
+  }
+  .tnc-checkbox {
+    width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px;
+    accent-color: var(--gold); cursor: pointer;
+  }
+  .tnc-checkbox-label {
+    font-size: 12px; color: var(--text-muted); line-height: 1.6; cursor: pointer;
+  }
+  .tnc-checkbox-label strong { color: var(--white); }
+  .tnc-agree-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--gold) 0%, #a8892e 100%);
+    border: none; border-radius: 14px; padding: 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px; font-weight: 700; color: var(--navy);
+    cursor: pointer; transition: all 0.2s;
+    box-shadow: 0 4px 20px rgba(201,168,76,0.3);
+    opacity: 0.4; pointer-events: none;
+  }
+  .tnc-agree-btn.enabled { opacity: 1; pointer-events: all; }
+  .tnc-agree-btn.enabled:active { transform: scale(0.98); }
+
+  /* ── IMPROVED GPS TRACKING PULSE ANIMATION ── */
+  @keyframes gps-pulse-ring {
+    0% { transform: scale(1); opacity: 0.6; }
+    70% { transform: scale(1.55); opacity: 0; }
+    100% { transform: scale(1.55); opacity: 0; }
+  }
+  @keyframes gps-dot-breathe {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(129,216,208,0.5); }
+    50% { transform: scale(1.12); box-shadow: 0 0 0 6px rgba(129,216,208,0); }
+  }
+  .gps-live-indicator {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(129,216,208,0.08);
+    border: 1px solid rgba(129,216,208,0.35);
+    border-radius: 30px; padding: 6px 14px 6px 8px;
+    position: relative;
+  }
+  .gps-pulse-wrap {
+    position: relative; width: 14px; height: 14px; flex-shrink: 0;
+  }
+  .gps-pulse-dot {
+    position: absolute; inset: 2px;
+    background: #81d8d0; border-radius: 50%;
+    animation: gps-dot-breathe 2s ease-in-out infinite;
+  }
+  .gps-pulse-ring {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    background: rgba(129,216,208,0.4);
+    animation: gps-pulse-ring 2s ease-out infinite;
+  }
+  .gps-pulse-ring2 {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    background: rgba(129,216,208,0.25);
+    animation: gps-pulse-ring 2s ease-out infinite 0.7s;
+  }
+  .gps-live-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 14px; color: #81d8d0;
+    white-space: nowrap; line-height: 1;
+  }
+  .gps-street-addr {
+    font-size: 10px; color: rgba(129,216,208,0.65);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 180px; line-height: 1; margin-top: 1px;
+  }
+
 </style>
 </head>
 <body>
+
+<!-- TERMS & CONDITIONS — shown once before every shift, cannot be dismissed -->
+<div id="modal-tnc">
+  <div class="tnc-box">
+    <div class="tnc-header">
+      <div class="tnc-badge" style="background:rgba(201,168,76,0.1);border-color:rgba(201,168,76,0.35);color:var(--gold);">📋 Before You Start</div>
+      <div class="tnc-title">Welcome to <span>PI Cleaning</span></div>
+      <div class="tnc-subtitle">Just a couple of things to confirm before your shift begins.</div>
+    </div>
+    <div class="tnc-scroll">
+
+      <div class="tnc-section">
+        <div class="tnc-section-title">📍 Location Access — One Quick Step</div>
+        <div class="tnc-section-body">
+          This app uses your location to record your job sites and help manage your shift. When your browser asks for location permission, please select <strong>"Always Allow"</strong> so everything works smoothly throughout your shift.
+        </div>
+      </div>
+
+      <div class="tnc-section">
+        <div class="tnc-section-title">🔐 Your Privacy</div>
+        <div class="tnc-section-body">
+          Your location is only used for work purposes — confirming attendance and job sites. It is never shared with third parties and is deleted within <strong>14 days</strong>. You can read the full details in the <strong>Privacy Policy</strong> anytime from the app.
+        </div>
+      </div>
+
+    </div>
+    <div class="tnc-footer">
+      <div class="tnc-checkbox-row">
+        <input type="checkbox" class="tnc-checkbox" id="tnc-check" onchange="tncCheckChanged()">
+        <label class="tnc-checkbox-label" for="tnc-check">
+          I understand that this app will use my location during my shift, and I'll allow location access when prompted.
+        </label>
+      </div>
+      <button class="tnc-agree-btn" id="tnc-agree-btn" onclick="acceptTnC()">
+        Got It — Start My Shift
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- SPLASH -->
 <div id="splash" class="screen active">
@@ -607,9 +794,19 @@
     <div class="stopwatch-card">
       <div class="sw-date" id="sw-date">—</div>
 
-      <!-- GPS pill (shown while tracking) -->
-      <div class="gps-orbit-wrap" id="gps-orbit-wrap" style="display:none;">
-        <div class="day-pill" id="sw-day">—</div>
+      <!-- GPS live indicator (shown while tracking) -->
+      <div id="gps-orbit-wrap" style="display:none;flex-direction:column;align-items:center;gap:4px;margin-bottom:10px;">
+        <div class="gps-live-indicator">
+          <div class="gps-pulse-wrap">
+            <div class="gps-pulse-ring"></div>
+            <div class="gps-pulse-ring2"></div>
+            <div class="gps-pulse-dot"></div>
+          </div>
+          <div>
+            <div class="gps-live-label" id="sw-day">—</div>
+            <div class="gps-street-addr" id="gps-street-display">Acquiring location…</div>
+          </div>
+        </div>
       </div>
       <!-- Plain day name (shown when not tracking) -->
       <div class="sw-day" id="sw-day-plain" style="margin-bottom:16px;">—</div>
@@ -815,6 +1012,16 @@
 
     </div>
 
+      <div class="tour-card">
+        <div class="tour-card-icon">⏹</div>
+        <div>
+          <div class="tour-card-title">When Location Tracking Stops</div>
+          <div class="tour-card-body">Your location is only tracked during active shifts. Tracking stops the moment you tap <strong style="color:var(--white);">Clock Out</strong>, or automatically after a 12-hour maximum shift. No data is collected outside of your shift hours.</div>
+        </div>
+      </div>
+
+    </div>
+
     <button class="modal-btn" onclick="closeModal('modal-tour')" style="margin-top:20px;">Got It</button>
   </div>
 </div>
@@ -882,7 +1089,7 @@
 // ══════════════════════════════════════════
 //  GOOGLE APPS SCRIPT URL — paste yours here
 // ══════════════════════════════════════════
-const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzK1c7DjvGV9YEA4N4SqUfGr-wKWWS3d9BrJuSfDxeasQprXEksLz0y7POtWko9yEPHOA/exec';
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwOKy-LdKcREXyjFKmj15EDD3NKBacvpvpkX3n_jO5wGf6rw2kfp_FdzYKloOAlPAw8oA/exec';
 
 // ══════════════════════════════════════════
 //  MAX SHIFT DURATION: 12 hours in ms
@@ -1000,7 +1207,7 @@ let autoClockOutTimer = null;
 //  INIT — restore from localStorage
 // ══════════════════════════════════════════
 function init() {
-  prewarmGPS(); // request GPS permission immediately on load — pre-granted before clock-in
+  // T&C modal is shown immediately on load — prewarmGPS is called after user agrees
   const saved = loadState();
 
   // Show splash briefly then route
@@ -1105,11 +1312,15 @@ function getLocation() {
     state.gps.lat = pos.coords.latitude.toFixed(6);
     state.gps.lng = pos.coords.longitude.toFixed(6);
     st.className = 'loc-status';
-    st.textContent = `✓ GPS: ${state.gps.lat}, ${state.gps.lng}`;
+    st.textContent = `✓ GPS captured — resolving address…`;
     checkReady();
+    // Reverse geocode to show human-readable address
+    reverseGeocode(state.gps.lat, state.gps.lng, addr => {
+      st.textContent = addr ? `✓ ${addr}` : `✓ GPS: ${state.gps.lat}, ${state.gps.lng}`;
+    });
   }, () => {
     st.className = 'loc-status error';
-    st.textContent = '✗ Could not get location. Allow GPS access.';
+    st.textContent = '✗ Could not get location. Enable "Always Allow" GPS access.';
   }, { enableHighAccuracy: true, timeout: 10000 });
 }
 
@@ -1121,7 +1332,10 @@ function getJobLocation() {
     state.jobGps.lat = pos.coords.latitude.toFixed(6);
     state.jobGps.lng = pos.coords.longitude.toFixed(6);
     st.className = 'loc-status';
-    st.textContent = `✓ GPS: ${state.jobGps.lat}, ${state.jobGps.lng}`;
+    st.textContent = '✓ GPS captured — resolving address…';
+    reverseGeocode(state.jobGps.lat, state.jobGps.lng, addr => {
+      st.textContent = addr ? `✓ ${addr}` : `✓ GPS: ${state.jobGps.lat}, ${state.jobGps.lng}`;
+    });
   }, () => {
     st.className = 'loc-status error';
     st.textContent = '✗ Unable to capture location';
@@ -1135,41 +1349,104 @@ let gpsWatchId = null;
 let gpsUpdateInterval = null;
 let gpsRetryTimer = null;
 
-// Pre-warm GPS permission as early as possible — called on splash load
-// so the browser has already granted permission before clock-in
+// ══════════════════════════════════════════
+//  TERMS & CONDITIONS
+// ══════════════════════════════════════════
+function tncCheckChanged() {
+  const checked = document.getElementById('tnc-check').checked;
+  const btn = document.getElementById('tnc-agree-btn');
+  btn.classList.toggle('enabled', checked);
+}
+
+function acceptTnC() {
+  document.getElementById('modal-tnc').classList.add('hidden');
+  // Immediately request GPS with enableHighAccuracy so browser prompts "Always Allow"
+  prewarmGPS();
+}
+
+// Pre-warm GPS permission — called after T&C accepted
+// Triggers the browser's location permission prompt
 function prewarmGPS() {
   if (!navigator.geolocation) return;
   navigator.geolocation.getCurrentPosition(
     () => {}, // success — permission now cached by the browser
     () => {}, // fail silently — will prompt properly at clock-in
-    { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+    { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
   );
+}
+
+// ══════════════════════════════════════════
+//  REVERSE GEOCODE — coords → street address
+// ══════════════════════════════════════════
+let lastGeocodeCoords = null;
+let lastGeocodeResult = '';
+
+function reverseGeocode(lat, lng, callback) {
+  // Use nominatim (free, no API key needed)
+  const key = `${parseFloat(lat).toFixed(3)},${parseFloat(lng).toFixed(3)}`;
+  if (lastGeocodeCoords === key && lastGeocodeResult) {
+    callback(lastGeocodeResult); return;
+  }
+  const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+  fetch(url, { headers: { 'Accept-Language': 'en' } })
+    .then(r => r.json())
+    .then(data => {
+      const a = data.address || {};
+      // Build a short street string: house_number + road, suburb
+      let street = '';
+      if (a.house_number && a.road) street = `${a.house_number} ${a.road}`;
+      else if (a.road) street = a.road;
+      else if (a.suburb) street = a.suburb;
+      const suburb = a.suburb || a.city_district || a.town || a.city || '';
+      const result = suburb && street !== suburb ? `${street}, ${suburb}` : street;
+      lastGeocodeCoords = key;
+      lastGeocodeResult = result;
+      callback(result);
+    })
+    .catch(() => callback(''));
+}
+
+function updateGPSStreetDisplay(lat, lng) {
+  const el = document.getElementById('gps-street-display');
+  if (!el) return;
+  if (!lat || !lng) { el.textContent = 'Acquiring location…'; return; }
+  el.textContent = 'Locating street…';
+  reverseGeocode(lat, lng, addr => {
+    el.textContent = addr || `${lat}, ${lng}`;
+  });
+  // Also send to GPS_LOCATION sheet
+  sendGPSToSheet(lat, lng);
+}
+
+function sendGPSToSheet(lat, lng) {
+  if (!state.employee || !state.employee.name) return;
+  reverseGeocode(lat, lng, addr => {
+    sendToSheets('GPS_UPDATE', {
+      type: 'GPS_UPDATE',
+      name: state.employee.name,
+      id: state.employee.id,
+      lat: lat,
+      lng: lng,
+      address: addr,
+      accuracy: state.liveGps ? state.liveGps.accuracy : '',
+      time: iso(new Date()),
+      date: dateStr(new Date())
+    });
+  });
 }
 
 function startGPSTracking() {
   if (!navigator.geolocation) return;
-  stopGPSTracking(); // clear any existing watcher first
+  stopGPSTracking();
   showGPSOrbit(true);
   _attachGPSWatcher();
 
-  // Send precise location ping to Sheets every 5 minutes
-  // Also tries to force a fresh position read right before sending
+  // Send location to Sheets every 5 minutes automatically — no employee prompt
   gpsUpdateInterval = setInterval(() => {
     if (state.onBreak) return;
-    // If we already have a fresh position, send it
     if (state.liveGps) {
-      sendToSheets('GPS_UPDATE', {
-        type: 'GPS_UPDATE',
-        name: state.employee.name,
-        id: state.employee.id,
-        lat: state.liveGps.lat,
-        lng: state.liveGps.lng,
-        accuracy: state.liveGps.accuracy,
-        time: iso(new Date()),
-        date: dateStr(new Date())
-      });
+      sendGPSToSheet(state.liveGps.lat, state.liveGps.lng);
     } else {
-      // No position yet — force a fresh one-shot request
       navigator.geolocation.getCurrentPosition(pos => {
         state.liveGps = {
           lat: pos.coords.latitude.toFixed(6),
@@ -1177,16 +1454,7 @@ function startGPSTracking() {
           accuracy: Math.round(pos.coords.accuracy),
           ts: new Date().toISOString()
         };
-        sendToSheets('GPS_UPDATE', {
-          type: 'GPS_UPDATE',
-          name: state.employee.name,
-          id: state.employee.id,
-          lat: state.liveGps.lat,
-          lng: state.liveGps.lng,
-          accuracy: state.liveGps.accuracy,
-          time: iso(new Date()),
-          date: dateStr(new Date())
-        });
+        sendGPSToSheet(state.liveGps.lat, state.liveGps.lng);
       }, () => {}, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
     }
   }, 5 * 60 * 1000);
@@ -1194,18 +1462,25 @@ function startGPSTracking() {
 
 function _attachGPSWatcher() {
   if (gpsRetryTimer) { clearTimeout(gpsRetryTimer); gpsRetryTimer = null; }
+  let lastStreetUpdate = 0;
   gpsWatchId = navigator.geolocation.watchPosition(
     pos => {
+      const lat = pos.coords.latitude.toFixed(6);
+      const lng = pos.coords.longitude.toFixed(6);
       state.liveGps = {
-        lat: pos.coords.latitude.toFixed(6),
-        lng: pos.coords.longitude.toFixed(6),
+        lat, lng,
         accuracy: Math.round(pos.coords.accuracy),
         ts: new Date().toISOString()
       };
-      showGPSOrbit(true); // restore ring if it was hidden by a prior error
+      showGPSOrbit(true);
+      // Update street address display — but throttle to once per 90 seconds
+      const now = Date.now();
+      if (now - lastStreetUpdate > 90000) {
+        lastStreetUpdate = now;
+        updateGPSStreetDisplay(lat, lng);
+      }
     },
     err => {
-      // On error, hide the ring and retry the watcher after 30 seconds
       showGPSOrbit(false);
       if (gpsWatchId !== null) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
       gpsRetryTimer = setTimeout(() => {
@@ -1405,11 +1680,13 @@ function showGPSOrbit(visible) {
   const plain = document.getElementById('sw-day-plain');
   if (!wrap || !plain) return;
   if (visible) {
-    wrap.style.display = 'inline-flex';
+    wrap.style.display = 'flex';
     plain.style.display = 'none';
   } else {
     wrap.style.display = 'none';
     plain.style.display = 'block';
+    const sa = document.getElementById('gps-street-display');
+    if (sa) sa.textContent = 'Acquiring location…';
   }
 }
 
@@ -1469,6 +1746,14 @@ function toggleBreak() {
     showToast(`▶ Resumed — break was ${secToMS(breakSecs)}`);
     showGPSOrbit(true);
     _attachGPSWatcher(); // Resume GPS watcher after break
+    // Auto-send location back to Sheets on resume — no employee prompt needed
+    navigator.geolocation.getCurrentPosition(pos => {
+      const lat = pos.coords.latitude.toFixed(6);
+      const lng = pos.coords.longitude.toFixed(6);
+      state.liveGps = { lat, lng, accuracy: Math.round(pos.coords.accuracy), ts: new Date().toISOString() };
+      updateGPSStreetDisplay(lat, lng);
+      sendGPSToSheet(lat, lng);
+    }, () => {}, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
   }
 }
 
