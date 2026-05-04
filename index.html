@@ -417,36 +417,27 @@
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.3); border-radius: 2px; }
 
-  /* ── TIFFANY GPS ORBITAL RING ── */
+  /* ── TIFFANY GPS ORBITAL PILL ── */
   .gps-orbit-wrap {
     position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 120px; height: 36px;
-    margin: 0 auto;
+    margin: 0 auto 16px;
   }
-  .gps-orbit-ring {
-    position: absolute;
-    inset: -8px;
-    border-radius: 50px;
-    border: 2px solid transparent;
-    border-top-color: #81d8d0;
-    border-right-color: rgba(129,216,208,0.3);
-    animation: orbitSpin 2.2s linear infinite;
-    pointer-events: none;
+  .day-pill {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--gold);
+    background: rgba(129,216,208,0.08);
+    border: 1.5px solid rgba(129,216,208,0.35);
+    border-radius: 30px;
+    padding: 6px 22px;
+    position: relative;
+    z-index: 1;
+    white-space: nowrap;
   }
-  .gps-orbit-ring::after {
-    content: '';
-    position: absolute;
-    top: -5px; left: 50%;
-    transform: translateX(-50%);
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: #81d8d0;
-    box-shadow: 0 0 8px #81d8d0, 0 0 16px rgba(129,216,208,0.5);
-  }
-  @keyframes orbitSpin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+
 
   /* ── GUIDED TOUR BUTTON ── */
   .tour-btn {
@@ -615,11 +606,13 @@
     <!-- Stopwatch -->
     <div class="stopwatch-card">
       <div class="sw-date" id="sw-date">—</div>
+
+      <!-- GPS pill (shown while tracking) -->
       <div class="gps-orbit-wrap" id="gps-orbit-wrap" style="display:none;">
-        <div class="gps-orbit-ring"></div>
-        <div class="sw-day" id="sw-day" style="margin-bottom:0;">—</div>
+        <div class="day-pill" id="sw-day">—</div>
       </div>
-      <div class="sw-day" id="sw-day-plain">—</div>
+      <!-- Plain day name (shown when not tracking) -->
+      <div class="sw-day" id="sw-day-plain" style="margin-bottom:16px;">—</div>
       <div class="sw-time" id="sw-time">00:00:00</div>
       <div class="sw-label">Hours Worked Today</div>
       <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:12px;">
@@ -788,14 +781,11 @@
 
       <div class="tour-tiffany">
         <div class="tour-card-icon" style="font-size:18px;padding-top:2px;">
-          <!-- Mini orbital ring illustration -->
-          <div style="width:22px;height:22px;border-radius:50%;border:2px solid transparent;border-top-color:#81d8d0;animation:orbitSpin 2s linear infinite;position:relative;">
-            <div style="position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:#81d8d0;box-shadow:0 0 6px #81d8d0;"></div>
-          </div>
+          <div style="background:rgba(129,216,208,0.12);border:1.5px solid rgba(129,216,208,0.4);border-radius:20px;padding:3px 10px;font-size:11px;color:#81d8d0;font-weight:600;white-space:nowrap;">Mon</div>
         </div>
         <div>
           <div class="tour-card-title" style="color:#81d8d0;">How to Know Your Location Is Being Tracked</div>
-          <div class="tour-card-body">When you are clocked in, look at the <strong style="color:var(--white);">day name</strong> on your shift timer — for example "Monday". You will see a <strong style="color:#81d8d0;">Tiffany blue spinning ring</strong> circling around it. As long as that ring is spinning, your location is actively being tracked. If the ring disappears, it means tracking has paused (e.g. you are on break or GPS is unavailable).</div>
+          <div class="tour-card-body">When you are clocked in, look at the <strong style="color:#81d8d0;">Tiffany blue pill</strong> on your shift timer showing the current day — for example "Monday". As long as that pill is visible and glowing teal, your location is actively being tracked. If it disappears and reverts to plain text, tracking has paused (e.g. you are on break or GPS is temporarily unavailable).</div>
         </div>
       </div>
 
@@ -812,14 +802,6 @@
         <div>
           <div class="tour-card-title">Taking a Break</div>
           <div class="tour-card-body">Tap <strong style="color:var(--white);">Break</strong> in the top-right when you start your break. Tap <strong style="color:var(--white);">Resume</strong> when you're back. Break time is automatically deducted from your total hours. Location tracking pauses during breaks.</div>
-        </div>
-      </div>
-
-      <div class="tour-card">
-        <div class="tour-card-icon">⏰</div>
-        <div>
-          <div class="tour-card-title">Auto Clock-Out</div>
-          <div class="tour-card-body">For safety, your shift will automatically end after <strong style="color:var(--white);">12 hours</strong>. You will get a warning 30 minutes before this happens. Always clock out manually before this limit.</div>
         </div>
       </div>
 
@@ -1018,6 +1000,7 @@ let autoClockOutTimer = null;
 //  INIT — restore from localStorage
 // ══════════════════════════════════════════
 function init() {
+  prewarmGPS(); // request GPS permission immediately on load — pre-granted before clock-in
   const saved = loadState();
 
   // Show splash briefly then route
@@ -1150,43 +1133,93 @@ function getJobLocation() {
 // ══════════════════════════════════════════
 let gpsWatchId = null;
 let gpsUpdateInterval = null;
+let gpsRetryTimer = null;
+
+// Pre-warm GPS permission as early as possible — called on splash load
+// so the browser has already granted permission before clock-in
+function prewarmGPS() {
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(
+    () => {}, // success — permission now cached by the browser
+    () => {}, // fail silently — will prompt properly at clock-in
+    { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+  );
+}
 
 function startGPSTracking() {
   if (!navigator.geolocation) return;
-
+  stopGPSTracking(); // clear any existing watcher first
   showGPSOrbit(true);
-
-  // Silent background tracking — no text labels shown to employee
-  gpsWatchId = navigator.geolocation.watchPosition(pos => {
-    state.liveGps = {
-      lat: pos.coords.latitude.toFixed(6),
-      lng: pos.coords.longitude.toFixed(6),
-      accuracy: Math.round(pos.coords.accuracy),
-      ts: new Date().toISOString()
-    };
-  }, () => {
-    showGPSOrbit(false); // GPS unavailable — hide ring
-  }, { enableHighAccuracy: true, maximumAge: 30000 });
+  _attachGPSWatcher();
 
   // Send precise location ping to Sheets every 5 minutes
+  // Also tries to force a fresh position read right before sending
   gpsUpdateInterval = setInterval(() => {
-    if (!state.liveGps || state.onBreak) return;
-    sendToSheets('GPS_UPDATE', {
-      type: 'GPS_UPDATE',
-      name: state.employee.name,
-      id: state.employee.id,
-      lat: state.liveGps.lat,
-      lng: state.liveGps.lng,
-      accuracy: state.liveGps.accuracy,
-      time: iso(new Date()),
-      date: dateStr(new Date())
-    });
+    if (state.onBreak) return;
+    // If we already have a fresh position, send it
+    if (state.liveGps) {
+      sendToSheets('GPS_UPDATE', {
+        type: 'GPS_UPDATE',
+        name: state.employee.name,
+        id: state.employee.id,
+        lat: state.liveGps.lat,
+        lng: state.liveGps.lng,
+        accuracy: state.liveGps.accuracy,
+        time: iso(new Date()),
+        date: dateStr(new Date())
+      });
+    } else {
+      // No position yet — force a fresh one-shot request
+      navigator.geolocation.getCurrentPosition(pos => {
+        state.liveGps = {
+          lat: pos.coords.latitude.toFixed(6),
+          lng: pos.coords.longitude.toFixed(6),
+          accuracy: Math.round(pos.coords.accuracy),
+          ts: new Date().toISOString()
+        };
+        sendToSheets('GPS_UPDATE', {
+          type: 'GPS_UPDATE',
+          name: state.employee.name,
+          id: state.employee.id,
+          lat: state.liveGps.lat,
+          lng: state.liveGps.lng,
+          accuracy: state.liveGps.accuracy,
+          time: iso(new Date()),
+          date: dateStr(new Date())
+        });
+      }, () => {}, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+    }
   }, 5 * 60 * 1000);
+}
+
+function _attachGPSWatcher() {
+  if (gpsRetryTimer) { clearTimeout(gpsRetryTimer); gpsRetryTimer = null; }
+  gpsWatchId = navigator.geolocation.watchPosition(
+    pos => {
+      state.liveGps = {
+        lat: pos.coords.latitude.toFixed(6),
+        lng: pos.coords.longitude.toFixed(6),
+        accuracy: Math.round(pos.coords.accuracy),
+        ts: new Date().toISOString()
+      };
+      showGPSOrbit(true); // restore ring if it was hidden by a prior error
+    },
+    err => {
+      // On error, hide the ring and retry the watcher after 30 seconds
+      showGPSOrbit(false);
+      if (gpsWatchId !== null) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
+      gpsRetryTimer = setTimeout(() => {
+        if (state.screen === 'working' && !state.onBreak) _attachGPSWatcher();
+      }, 30000);
+    },
+    { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+  );
 }
 
 function stopGPSTracking() {
   if (gpsWatchId !== null) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
   if (gpsUpdateInterval) { clearInterval(gpsUpdateInterval); gpsUpdateInterval = null; }
+  if (gpsRetryTimer) { clearTimeout(gpsRetryTimer); gpsRetryTimer = null; }
   showGPSOrbit(false);
 }
 
@@ -1400,7 +1433,10 @@ function toggleBreak() {
       date: dateStr(new Date())
     });
     showToast('☕ Break started — enjoy!');
-    showGPSOrbit(false); // Pause ring during break
+    showGPSOrbit(false);
+    // Stop the watcher during break to save battery
+    if (gpsWatchId !== null) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
+    if (gpsRetryTimer) { clearTimeout(gpsRetryTimer); gpsRetryTimer = null; }
   } else {
     // END BREAK
     const breakEnd = new Date();
@@ -1431,7 +1467,8 @@ function toggleBreak() {
       date: dateStr(breakEnd)
     });
     showToast(`▶ Resumed — break was ${secToMS(breakSecs)}`);
-    showGPSOrbit(true); // Resume ring after break
+    showGPSOrbit(true);
+    _attachGPSWatcher(); // Resume GPS watcher after break
   }
 }
 
