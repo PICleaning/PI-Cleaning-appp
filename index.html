@@ -416,6 +416,79 @@
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.3); border-radius: 2px; }
+
+  /* ── TIFFANY GPS ORBITAL RING ── */
+  .gps-orbit-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 120px; height: 36px;
+    margin: 0 auto;
+  }
+  .gps-orbit-ring {
+    position: absolute;
+    inset: -8px;
+    border-radius: 50px;
+    border: 2px solid transparent;
+    border-top-color: #81d8d0;
+    border-right-color: rgba(129,216,208,0.3);
+    animation: orbitSpin 2.2s linear infinite;
+    pointer-events: none;
+  }
+  .gps-orbit-ring::after {
+    content: '';
+    position: absolute;
+    top: -5px; left: 50%;
+    transform: translateX(-50%);
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #81d8d0;
+    box-shadow: 0 0 8px #81d8d0, 0 0 16px rgba(129,216,208,0.5);
+  }
+  @keyframes orbitSpin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+
+  /* ── GUIDED TOUR BUTTON ── */
+  .tour-btn {
+    background: rgba(129,216,208,0.1);
+    border: 1px solid rgba(129,216,208,0.35);
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px; font-weight: 600;
+    color: #81d8d0;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 5px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .tour-btn:active { transform: scale(0.96); }
+
+  /* ── TOUR MODAL CARDS ── */
+  .tour-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,168,76,0.15);
+    border-radius: 12px;
+    padding: 14px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .tour-card-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+  .tour-card-title { font-size: 13px; font-weight: 600; color: var(--white); margin-bottom: 4px; }
+  .tour-card-body { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+  .tour-warning {
+    background: rgba(226,75,74,0.08);
+    border: 1px solid rgba(226,75,74,0.25);
+    border-radius: 12px;
+    padding: 14px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .tour-tiffany {
+    background: rgba(129,216,208,0.07);
+    border: 1px solid rgba(129,216,208,0.25);
+    border-radius: 12px;
+    padding: 14px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
 </style>
 </head>
 <body>
@@ -520,7 +593,10 @@
       <div class="header-title">On the Clock</div>
       <div class="header-sub" id="work-employee-name">—</div>
     </div>
-    <div style="display:flex;gap:10px;align-items:center;">
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button class="tour-btn" onclick="openModal('modal-tour')">
+        <span>❓</span> Guide
+      </button>
       <button class="action-btn break-btn" id="break-btn" onclick="toggleBreak()" style="padding:8px 14px;flex-direction:row;border-radius:10px;gap:6px;font-size:12px;">
         <span>☕</span> Break
       </button>
@@ -539,16 +615,16 @@
     <!-- Stopwatch -->
     <div class="stopwatch-card">
       <div class="sw-date" id="sw-date">—</div>
-      <div class="sw-day" id="sw-day">—</div>
+      <div class="gps-orbit-wrap" id="gps-orbit-wrap" style="display:none;">
+        <div class="gps-orbit-ring"></div>
+        <div class="sw-day" id="sw-day" style="margin-bottom:0;">—</div>
+      </div>
+      <div class="sw-day" id="sw-day-plain">—</div>
       <div class="sw-time" id="sw-time">00:00:00</div>
       <div class="sw-label">Hours Worked Today</div>
       <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:12px;">
         <div class="status-pill" id="status-pill"><span class="dot"></span> Working</div>
-        <div class="status-pill" id="gps-tracking-pill" style="background:rgba(201,168,76,0.12);border-color:rgba(201,168,76,0.4);color:var(--gold);display:none;">
-          <span class="dot" style="background:var(--gold);animation:blink 2s ease infinite;"></span> GPS Tracking
-        </div>
       </div>
-      <div id="live-gps-display" style="font-size:10px;color:var(--text-muted);margin-top:8px;"></div>
     </div>
 
     <!-- Break Timer Card — visible only on break -->
@@ -569,7 +645,6 @@
       <div class="info-row"><span class="info-label">Employee ID</span><span class="info-val" id="wi-id">—</span></div>
       <div class="info-row"><span class="info-label">Clocked In</span><span class="info-val" id="wi-clockin">—</span></div>
       <div class="info-row"><span class="info-label">Shift Type</span><span class="info-val" id="wi-shift">—</span></div>
-      <div class="info-row"><span class="info-label">GPS</span><span class="info-val" id="wi-gps" style="font-size:11px;">—</span></div>
       <div class="info-row"><span class="info-label">Total Break</span><span class="info-val" id="wi-break">—</span></div>
     </div>
 
@@ -612,12 +687,26 @@
     <div class="modal-title">Add <span>Next Job</span></div>
     <div class="field">
       <label>New Job Address *</label>
-      <input type="text" id="new-job-addr" placeholder="e.g. 45 King St, CBD">
+      <input type="text" id="new-job-addr" placeholder="e.g. 45 King St, CBD" oninput="updateDirectionsBtn()">
     </div>
     <button class="loc-btn" onclick="getJobLocation()" style="margin-top:0;">
-      <span>📍</span> Capture GPS for this Job
+      <span>📍</span> Capture GPS for this Job <span style="color:var(--danger);margin-left:4px;">*</span>
     </button>
     <div class="loc-status" id="job-loc-status"></div>
+
+    <!-- Directions (not mandatory) -->
+    <div id="directions-wrap" style="display:none;margin-top:12px;">
+      <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-bottom:8px;letter-spacing:0.5px;">— Get Directions (optional) —</div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="openDirections('google')" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 8px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+          🗺️ Google Maps
+        </button>
+        <button onclick="openDirections('apple')" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 8px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+          🍎 Apple Maps
+        </button>
+      </div>
+    </div>
+
     <button class="modal-btn" onclick="addJob()">Add Job Location</button>
     <button class="modal-cancel" onclick="closeModal('modal-job')">Cancel</button>
   </div>
@@ -680,6 +769,130 @@
   </div>
 </div>
 
+<!-- MODAL: GUIDED TOUR -->
+<div class="modal-overlay" id="modal-tour">
+  <div class="modal-box" style="max-height:88vh;overflow-y:auto;">
+    <div class="modal-handle"></div>
+    <div class="modal-title">App <span>Guide</span></div>
+    <div style="font-size:11px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;">PI Cleaning Services · Employee Guide</div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;">
+
+      <div class="tour-warning">
+        <div class="tour-card-icon">🚨</div>
+        <div>
+          <div class="tour-card-title" style="color:#e24b4a;">Do NOT Force-Close This App</div>
+          <div class="tour-card-body">If you force-close or swipe away this app during your shift, the system <strong style="color:var(--white);">will not receive your clock-out</strong> and your shift timer will stop updating. This may affect your pay records. Always use the <strong style="color:var(--white);">Clock Out</strong> button to end your shift properly.</div>
+        </div>
+      </div>
+
+      <div class="tour-tiffany">
+        <div class="tour-card-icon" style="font-size:18px;padding-top:2px;">
+          <!-- Mini orbital ring illustration -->
+          <div style="width:22px;height:22px;border-radius:50%;border:2px solid transparent;border-top-color:#81d8d0;animation:orbitSpin 2s linear infinite;position:relative;">
+            <div style="position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:#81d8d0;box-shadow:0 0 6px #81d8d0;"></div>
+          </div>
+        </div>
+        <div>
+          <div class="tour-card-title" style="color:#81d8d0;">How to Know Your Location Is Being Tracked</div>
+          <div class="tour-card-body">When you are clocked in, look at the <strong style="color:var(--white);">day name</strong> on your shift timer — for example "Monday". You will see a <strong style="color:#81d8d0;">Tiffany blue spinning ring</strong> circling around it. As long as that ring is spinning, your location is actively being tracked. If the ring disappears, it means tracking has paused (e.g. you are on break or GPS is unavailable).</div>
+        </div>
+      </div>
+
+      <div class="tour-card">
+        <div class="tour-card-icon">📍</div>
+        <div>
+          <div class="tour-card-title">Always Capture GPS When Adding a Job</div>
+          <div class="tour-card-body">When you tap <strong style="color:var(--white);">+ Add Job</strong>, you must tap the GPS button before confirming. This records your exact location at that job site and is required for each new location.</div>
+        </div>
+      </div>
+
+      <div class="tour-card">
+        <div class="tour-card-icon">☕</div>
+        <div>
+          <div class="tour-card-title">Taking a Break</div>
+          <div class="tour-card-body">Tap <strong style="color:var(--white);">Break</strong> in the top-right when you start your break. Tap <strong style="color:var(--white);">Resume</strong> when you're back. Break time is automatically deducted from your total hours. Location tracking pauses during breaks.</div>
+        </div>
+      </div>
+
+      <div class="tour-card">
+        <div class="tour-card-icon">⏰</div>
+        <div>
+          <div class="tour-card-title">Auto Clock-Out</div>
+          <div class="tour-card-body">For safety, your shift will automatically end after <strong style="color:var(--white);">12 hours</strong>. You will get a warning 30 minutes before this happens. Always clock out manually before this limit.</div>
+        </div>
+      </div>
+
+      <div class="tour-card">
+        <div class="tour-card-icon">💾</div>
+        <div>
+          <div class="tour-card-title">If You Close & Reopen the App</div>
+          <div class="tour-card-body">If you close the browser tab and reopen it during your shift, your session will be <strong style="color:var(--white);">automatically restored</strong> — your timer continues from where it left off. Your name and Employee ID are remembered for <strong style="color:var(--white);">7 days</strong> so you only need to enter your job address each shift.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <button class="modal-btn" onclick="closeModal('modal-tour')" style="margin-top:20px;">Got It</button>
+  </div>
+</div>
+
+<!-- PRIVACY POLICY BUTTON (always visible, bottom-right) -->
+<button id="privacy-btn" onclick="openModal('modal-privacy')" style="
+  position:fixed; bottom:16px; right:16px; z-index:150;
+  background:rgba(10,22,40,0.85); border:1px solid rgba(201,168,76,0.2);
+  border-radius:20px; padding:5px 10px;
+  font-family:'DM Sans',sans-serif; font-size:10px; color:var(--text-muted);
+  cursor:pointer; letter-spacing:0.3px; backdrop-filter:blur(6px);
+  transition:opacity 0.2s;
+" onmouseenter="this.style.opacity='0.7'" onmouseleave="this.style.opacity='1'">
+  🔒 Privacy Policy
+</button>
+
+<!-- MODAL: PRIVACY POLICY -->
+<div class="modal-overlay" id="modal-privacy">
+  <div class="modal-box" style="max-height:85vh;overflow-y:auto;">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Privacy <span>Policy</span></div>
+
+    <div style="font-size:12px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;">PI Cleaning Services · Location Data</div>
+
+    <div style="font-size:13px;color:var(--text-muted);line-height:1.75;display:flex;flex-direction:column;gap:14px;">
+
+      <div style="background:rgba(201,168,76,0.07);border-left:3px solid var(--gold);border-radius:0 8px 8px 0;padding:12px 14px;">
+        <div style="color:var(--white);font-weight:600;font-size:13px;margin-bottom:4px;">📍 Location Tracking During Shifts</div>
+        Your GPS location is collected automatically when you clock in and continues to be recorded throughout your active shift. This data is used solely to verify attendance, confirm job site presence, and support workforce management operations.
+      </div>
+
+      <div>
+        <div style="color:var(--white);font-weight:600;margin-bottom:4px;">⏹ When Tracking Stops</div>
+        Location tracking stops immediately when you clock out of your shift, or when your shift is automatically ended after the maximum shift duration. No location data is collected outside of active shift hours.
+      </div>
+
+      <div>
+        <div style="color:var(--white);font-weight:600;margin-bottom:4px;">🗓 Data Retention</div>
+        All location coordinates recorded during your shift are automatically and permanently deleted from our systems within <strong style="color:var(--gold);">14 days</strong> of collection. No location data is retained beyond this period.
+      </div>
+
+      <div>
+        <div style="color:var(--white);font-weight:600;margin-bottom:4px;">🔐 How Your Data Is Used</div>
+        Location data is transmitted securely to PI Cleaning Services' internal records system. It is not sold, shared with third parties, or used for any purpose outside of employment and operational needs.
+      </div>
+
+      <div>
+        <div style="color:var(--white);font-weight:600;margin-bottom:4px;">✅ Your Consent</div>
+        By clocking in to this application, you acknowledge and consent to the collection of your GPS location data under the terms described in this policy, in accordance with applicable Australian privacy legislation.
+      </div>
+
+      <div style="background:rgba(226,75,74,0.08);border:1px solid rgba(226,75,74,0.2);border-radius:10px;padding:12px 14px;font-size:12px;">
+        For any questions about your data or to request access to your records, please contact your manager or the PI Cleaning Services administration team.
+      </div>
+    </div>
+
+    <button class="modal-btn" onclick="closeModal('modal-privacy')" style="margin-top:20px;">I Understand</button>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div id="toast" style="position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--navy-light);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-size:14px;color:var(--white);z-index:200;transition:all 0.3s;pointer-events:none;white-space:nowrap;max-width:90%;text-align:center;"></div>
 
@@ -701,23 +914,34 @@ const CRED_KEY = 'pi_employee_creds';
 const CRED_TTL = 7 * 24 * 60 * 60 * 1000;
 
 function saveCredentials(name, id) {
-  try {
-    localStorage.setItem(CRED_KEY, JSON.stringify({ name, id, savedAt: Date.now() }));
-  } catch(e) {}
+  // Write to BOTH localStorage (survives force-close) AND sessionStorage (faster read)
+  const payload = JSON.stringify({ name, id, savedAt: Date.now() });
+  try { localStorage.setItem(CRED_KEY, payload); } catch(e) {}
+  try { sessionStorage.setItem(CRED_KEY, payload); } catch(e) {}
 }
 
 function loadCredentials() {
+  // Try localStorage first, fall back to sessionStorage
+  let raw = null;
+  try { raw = localStorage.getItem(CRED_KEY); } catch(e) {}
+  if (!raw) { try { raw = sessionStorage.getItem(CRED_KEY); } catch(e) {} }
+  if (!raw) return null;
   try {
-    const raw = localStorage.getItem(CRED_KEY);
-    if (!raw) return null;
     const c = JSON.parse(raw);
-    if (Date.now() - c.savedAt > CRED_TTL) { localStorage.removeItem(CRED_KEY); return null; }
+    if (Date.now() - c.savedAt > CRED_TTL) {
+      try { localStorage.removeItem(CRED_KEY); } catch(e) {}
+      try { sessionStorage.removeItem(CRED_KEY); } catch(e) {}
+      return null;
+    }
+    // Refresh the savedAt timestamp to extend the 7-day window on each use
+    saveCredentials(c.name, c.id);
     return c;
   } catch(e) { return null; }
 }
 
 function forgetCredentials() {
-  localStorage.removeItem(CRED_KEY);
+  try { localStorage.removeItem(CRED_KEY); } catch(e) {}
+  try { sessionStorage.removeItem(CRED_KEY); } catch(e) {}
   document.getElementById('returning-banner').style.display = 'none';
   document.getElementById('details-card').style.display = 'block';
   document.getElementById('emp-name').value = '';
@@ -731,7 +955,7 @@ function showReturningBanner(creds) {
   document.getElementById('details-card').style.display = 'none';
   document.getElementById('returning-name').textContent = creds.name;
   document.getElementById('returning-id').textContent = creds.id;
-  const daysLeft = Math.ceil((CRED_TTL - (Date.now() - creds.savedAt)) / (24*60*60*1000));
+  const daysLeft = Math.max(1, Math.ceil((CRED_TTL - (Date.now() - creds.savedAt)) / (24*60*60*1000)));
   document.getElementById('cred-expiry').textContent = `${daysLeft}d`;
   state._savedCreds = creds;
 }
@@ -742,11 +966,12 @@ function showReturningBanner(creds) {
 const STORAGE_KEY = 'pi_cleaning_state';
 
 function loadState() {
+  let raw = null;
+  try { raw = localStorage.getItem(STORAGE_KEY); } catch(e) {}
+  if (!raw) { try { raw = sessionStorage.getItem(STORAGE_KEY); } catch(e) {} }
+  if (!raw) return null;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
     const s = JSON.parse(raw);
-    // Convert ISO strings back to Date objects
     if (s.clockInTime) s.clockInTime = new Date(s.clockInTime);
     if (s.currentBreakStart) s.currentBreakStart = new Date(s.currentBreakStart);
     s.jobs = (s.jobs || []).map(j => ({ ...j, time: new Date(j.time) }));
@@ -756,12 +981,15 @@ function loadState() {
 
 function saveState() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    const payload = JSON.stringify(state);
+    try { localStorage.setItem(STORAGE_KEY, payload); } catch(e) {}
+    try { sessionStorage.setItem(STORAGE_KEY, payload); } catch(e) {}
   } catch(e) {}
 }
 
 function clearState() {
-  localStorage.removeItem(STORAGE_KEY);
+  try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+  try { sessionStorage.removeItem(STORAGE_KEY); } catch(e) {}
 }
 
 // ══════════════════════════════════════════
@@ -833,7 +1061,6 @@ function restoreWorkingScreen() {
   document.getElementById('wi-id').textContent = state.employee.id;
   document.getElementById('wi-clockin').textContent = fmt12(state.clockInTime);
   document.getElementById('wi-shift').textContent = state.employee.shift;
-  document.getElementById('wi-gps').textContent = `${state.gps.lat}, ${state.gps.lng}`;
   renderJobs();
   switchScreen('working');
   startStopwatch();
@@ -926,10 +1153,10 @@ let gpsUpdateInterval = null;
 
 function startGPSTracking() {
   if (!navigator.geolocation) return;
-  const pill = document.getElementById('gps-tracking-pill');
-  if (pill) pill.style.display = 'inline-flex';
 
-  // Watch position continuously
+  showGPSOrbit(true);
+
+  // Silent background tracking — no text labels shown to employee
   gpsWatchId = navigator.geolocation.watchPosition(pos => {
     state.liveGps = {
       lat: pos.coords.latitude.toFixed(6),
@@ -937,14 +1164,11 @@ function startGPSTracking() {
       accuracy: Math.round(pos.coords.accuracy),
       ts: new Date().toISOString()
     };
-    // Update the GPS display in shift info
-    const gpsEl = document.getElementById('wi-gps');
-    if (gpsEl) gpsEl.textContent = `${state.liveGps.lat}, ${state.liveGps.lng}`;
-    const liveEl = document.getElementById('live-gps-display');
-    if (liveEl) liveEl.textContent = `📍 Live: ${state.liveGps.lat}, ${state.liveGps.lng} · ±${state.liveGps.accuracy}m`;
-  }, null, { enableHighAccuracy: true, maximumAge: 30000 });
+  }, () => {
+    showGPSOrbit(false); // GPS unavailable — hide ring
+  }, { enableHighAccuracy: true, maximumAge: 30000 });
 
-  // Send location ping to Sheets every 5 minutes
+  // Send precise location ping to Sheets every 5 minutes
   gpsUpdateInterval = setInterval(() => {
     if (!state.liveGps || state.onBreak) return;
     sendToSheets('GPS_UPDATE', {
@@ -963,8 +1187,7 @@ function startGPSTracking() {
 function stopGPSTracking() {
   if (gpsWatchId !== null) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
   if (gpsUpdateInterval) { clearInterval(gpsUpdateInterval); gpsUpdateInterval = null; }
-  const pill = document.getElementById('gps-tracking-pill');
-  if (pill) pill.style.display = 'none';
+  showGPSOrbit(false);
 }
 
 // ══════════════════════════════════════════
@@ -1000,7 +1223,6 @@ function clockIn() {
   document.getElementById('wi-id').textContent = state.employee.id;
   document.getElementById('wi-clockin').textContent = fmt12(state.clockInTime);
   document.getElementById('wi-shift').textContent = state.employee.shift;
-  document.getElementById('wi-gps').textContent = `${state.gps.lat}, ${state.gps.lng}`;
   document.getElementById('wi-break').textContent = '0:00';
 
   renderJobs();
@@ -1135,8 +1357,27 @@ function updateDateDisplay() {
   const now = new Date();
   const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  document.getElementById('sw-day').textContent = days[now.getDay()];
-  document.getElementById('sw-date').textContent = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+  const dayName = days[now.getDay()];
+  const dateText = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+  const dayEl = document.getElementById('sw-day');
+  const dayPlain = document.getElementById('sw-day-plain');
+  if (dayEl) dayEl.textContent = dayName;
+  if (dayPlain) dayPlain.textContent = dayName;
+  const dateEl = document.getElementById('sw-date');
+  if (dateEl) dateEl.textContent = dateText;
+}
+
+function showGPSOrbit(visible) {
+  const wrap = document.getElementById('gps-orbit-wrap');
+  const plain = document.getElementById('sw-day-plain');
+  if (!wrap || !plain) return;
+  if (visible) {
+    wrap.style.display = 'inline-flex';
+    plain.style.display = 'none';
+  } else {
+    wrap.style.display = 'none';
+    plain.style.display = 'block';
+  }
 }
 
 // ══════════════════════════════════════════
@@ -1159,6 +1400,7 @@ function toggleBreak() {
       date: dateStr(new Date())
     });
     showToast('☕ Break started — enjoy!');
+    showGPSOrbit(false); // Pause ring during break
   } else {
     // END BREAK
     const breakEnd = new Date();
@@ -1189,6 +1431,7 @@ function toggleBreak() {
       date: dateStr(breakEnd)
     });
     showToast(`▶ Resumed — break was ${secToMS(breakSecs)}`);
+    showGPSOrbit(true); // Resume ring after break
   }
 }
 
@@ -1231,7 +1474,26 @@ function openAddJob() {
   state.jobGps = { lat: null, lng: null };
   document.getElementById('new-job-addr').value = '';
   document.getElementById('job-loc-status').textContent = '';
+  document.getElementById('directions-wrap').style.display = 'none';
   openModal('modal-job');
+}
+
+function updateDirectionsBtn() {
+  const addr = document.getElementById('new-job-addr').value.trim();
+  document.getElementById('directions-wrap').style.display = addr ? 'block' : 'none';
+}
+
+function openDirections(provider) {
+  const addr = encodeURIComponent(document.getElementById('new-job-addr').value.trim());
+  if (!addr) return;
+  let url;
+  if (provider === 'google') {
+    url = `https://www.google.com/maps/dir/?api=1&destination=${addr}`;
+  } else {
+    // Apple Maps — works on iOS, falls back to Google on Android
+    url = `http://maps.apple.com/?daddr=${addr}`;
+  }
+  window.open(url, '_blank');
 }
 
 function addJob() {
