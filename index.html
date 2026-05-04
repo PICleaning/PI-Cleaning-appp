@@ -907,6 +907,10 @@
         <span>📍</span> Capture My GPS Location
       </button>
       <div class="loc-status" id="loc-status"></div>
+      <div style="display:flex;align-items:flex-start;gap:7px;margin-top:9px;padding:9px 11px;background:rgba(201,168,76,0.05);border-radius:9px;">
+        <span style="font-size:13px;flex-shrink:0;margin-top:1px;">💡</span>
+        <span style="font-size:11px;color:var(--text-muted);line-height:1.55;">Please only clock in once you've <strong style="color:rgba(255,255,255,0.7);font-weight:500;">arrived at your first job site</strong> — your location is recorded here to confirm your start point.</span>
+      </div>
     </div>
 
     <div class="form-card">
@@ -1130,8 +1134,8 @@
 </div>
 
 <!-- MODAL: GUIDED TOUR -->
-<div class="modal-overlay" id="modal-tour">
-  <div class="modal-box" style="max-height:88vh;overflow-y:auto;">
+<div class="modal-overlay" id="modal-tour" style="align-items:center;padding:20px;">
+  <div class="modal-box" style="max-height:88vh;overflow-y:auto;border-radius:24px;width:100%;max-width:430px;">
     <div class="modal-handle"></div>
     <div class="modal-title">App <span>Guide</span></div>
     <div style="font-size:11px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;">PI Cleaning Services · Employee Guide</div>
@@ -1196,17 +1200,7 @@
   </div>
 </div>
 
-<!-- PRIVACY POLICY BUTTON (always visible, bottom-right) -->
-<button id="privacy-btn" onclick="openModal('modal-privacy')" style="
-  position:fixed; bottom:16px; right:16px; z-index:150;
-  background:rgba(10,22,40,0.85); border:1px solid rgba(201,168,76,0.2);
-  border-radius:20px; padding:5px 10px;
-  font-family:'DM Sans',sans-serif; font-size:10px; color:var(--text-muted);
-  cursor:pointer; letter-spacing:0.3px; backdrop-filter:blur(6px);
-  transition:opacity 0.2s;
-" onmouseenter="this.style.opacity='0.7'" onmouseleave="this.style.opacity='1'">
-  🔒 Privacy Policy
-</button>
+<!-- Privacy Policy accessible via hamburger menu only -->
 
 <!-- MODAL: PRIVACY POLICY -->
 <div class="modal-overlay" id="modal-privacy">
