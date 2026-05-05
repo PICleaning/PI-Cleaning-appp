@@ -704,6 +704,122 @@
   .menu-item-icon { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; }
   .menu-footer { padding: 16px 20px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-muted); }
 
+  /* ── WHAT'S NEW — neon flash animation ── */
+  @keyframes neon-flash {
+    0%   { background: rgba(57,255,20,0.0);  border-color: rgba(57,255,20,0.0);  color: var(--text-muted); box-shadow: none; }
+    18%  { background: rgba(57,255,20,0.18); border-color: rgba(57,255,20,0.7);  color: #39ff14;           box-shadow: 0 0 14px rgba(57,255,20,0.45), inset 0 0 10px rgba(57,255,20,0.1); }
+    36%  { background: rgba(57,255,20,0.04); border-color: rgba(57,255,20,0.2);  color: var(--text-muted); box-shadow: none; }
+    54%  { background: rgba(57,255,20,0.18); border-color: rgba(57,255,20,0.7);  color: #39ff14;           box-shadow: 0 0 14px rgba(57,255,20,0.45), inset 0 0 10px rgba(57,255,20,0.1); }
+    72%  { background: rgba(57,255,20,0.04); border-color: rgba(57,255,20,0.2);  color: var(--text-muted); box-shadow: none; }
+    86%  { background: rgba(57,255,20,0.14); border-color: rgba(57,255,20,0.55); color: #39ff14;           box-shadow: 0 0 10px rgba(57,255,20,0.3); }
+    100% { background: rgba(57,255,20,0.0);  border-color: rgba(57,255,20,0.0);  color: var(--text-muted); box-shadow: none; }
+  }
+  .menu-item.whats-new-flash {
+    animation: neon-flash 2.6s ease-in-out infinite;
+  }
+  .menu-item.whats-new-flash .menu-item-icon,
+  .menu-item.whats-new-flash span:not(.menu-item-badge) {
+    /* icon and text inherit colour from parent animation */
+  }
+  .whats-new-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #39ff14;
+    box-shadow: 0 0 6px #39ff14, 0 0 12px rgba(57,255,20,0.5);
+    flex-shrink: 0; margin-left: auto;
+    animation: dot-pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes dot-pulse {
+    0%, 100% { transform: scale(1);   opacity: 1; }
+    50%       { transform: scale(1.4); opacity: 0.6; }
+  }
+
+  /* ── WHAT'S NEW MODAL ── */
+  .wn-modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 600;
+    background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+    align-items: flex-end; justify-content: center;
+  }
+  .wn-modal-overlay.open { display: flex; }
+  .wn-modal-box {
+    background: var(--navy-mid);
+    border: 1px solid var(--border);
+    border-radius: 24px 24px 0 0;
+    width: 100%; max-width: 430px;
+    max-height: 88vh;
+    display: flex; flex-direction: column;
+    animation: slideUp 0.3s ease;
+  }
+  .wn-head {
+    padding: 20px 20px 14px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .wn-handle { width: 40px; height: 4px; background: rgba(255,255,255,0.15); border-radius: 2px; margin: 0 auto 16px; }
+  .wn-title-row { display: flex; align-items: center; gap: 10px; }
+  .wn-title { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--white); }
+  .wn-title span { color: #39ff14; }
+  .wn-new-pill {
+    background: rgba(57,255,20,0.12);
+    border: 1px solid rgba(57,255,20,0.45);
+    border-radius: 20px; padding: 3px 10px;
+    font-size: 10px; font-weight: 700;
+    color: #39ff14; letter-spacing: 1px;
+    text-transform: uppercase;
+    display: none;
+  }
+  .wn-new-pill.visible { display: inline-block; }
+  .wn-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .wn-scroll { flex: 1; overflow-y: auto; padding: 16px; }
+  .wn-update-card {
+    border-radius: 14px; padding: 16px; margin-bottom: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(201,168,76,0.15);
+    position: relative; overflow: hidden;
+  }
+  .wn-update-card.new-update {
+    background: rgba(57,255,20,0.05);
+    border-color: rgba(57,255,20,0.35);
+  }
+  .wn-update-card.new-update::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: #39ff14;
+    box-shadow: 0 0 8px rgba(57,255,20,0.6);
+  }
+  .wn-update-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .wn-version {
+    font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+    color: var(--gold); text-transform: uppercase;
+  }
+  .wn-version.new-ver { color: #39ff14; }
+  .wn-date { font-size: 11px; color: var(--text-muted); }
+  .wn-update-title { font-size: 15px; font-weight: 700; color: var(--white); margin-bottom: 8px; }
+  .wn-update-title.new-title { color: #e6ffe0; }
+  .wn-features { display: flex; flex-direction: column; gap: 7px; }
+  .wn-feature-row { display: flex; align-items: flex-start; gap: 9px; font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+  .wn-feature-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .wn-new-tag {
+    display: inline-block;
+    background: rgba(57,255,20,0.15); border: 1px solid rgba(57,255,20,0.4);
+    border-radius: 6px; padding: 1px 6px;
+    font-size: 9px; font-weight: 800; color: #39ff14;
+    letter-spacing: 1px; margin-left: 5px; vertical-align: middle;
+    text-transform: uppercase;
+  }
+  .wn-footer {
+    padding: 14px 16px 32px;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .wn-close-btn {
+    width: 100%; padding: 13px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px; color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    cursor: pointer;
+  }
+
   /* ── TIMESHEET MODAL ── */
   .ts-modal-overlay {
     display: none; position: fixed; inset: 0; z-index: 600;
@@ -789,6 +905,103 @@
     font-family: 'DM Sans', sans-serif; font-size: 14px;
     cursor: pointer; margin-top: 8px;
   }
+
+  /* ── INBOX ── */
+  .inbox-modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 600;
+    background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+    align-items: flex-end; justify-content: center;
+  }
+  .inbox-modal-overlay.open { display: flex; }
+  .inbox-modal-box {
+    background: var(--navy-mid);
+    border: 1px solid var(--border);
+    border-radius: 24px 24px 0 0;
+    width: 100%; max-width: 430px;
+    max-height: 88vh;
+    display: flex; flex-direction: column;
+    animation: slideUp 0.3s ease;
+  }
+  .inbox-head {
+    padding: 20px 20px 14px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .inbox-handle { width: 40px; height: 4px; background: rgba(255,255,255,0.15); border-radius: 2px; margin: 0 auto 16px; }
+  .inbox-title-row { display: flex; align-items: center; justify-content: space-between; }
+  .inbox-title { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--white); }
+  .inbox-title span { color: var(--gold); }
+  .inbox-badge {
+    background: var(--danger); color: var(--white);
+    font-size: 11px; font-weight: 700;
+    border-radius: 10px; padding: 2px 8px;
+    display: none;
+  }
+  .inbox-badge.visible { display: inline-block; }
+  .inbox-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .inbox-scroll { flex: 1; overflow-y: auto; padding: 16px; }
+  .inbox-msg-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(201,168,76,0.15);
+    border-radius: 14px; padding: 14px 16px; margin-bottom: 12px;
+    transition: all 0.2s; cursor: pointer;
+    position: relative;
+  }
+  .inbox-msg-card.unread {
+    background: rgba(201,168,76,0.06);
+    border-color: rgba(201,168,76,0.35);
+  }
+  .inbox-msg-card.unread::before {
+    content: '';
+    position: absolute; left: -1px; top: 14px; bottom: 14px;
+    width: 3px; background: var(--gold); border-radius: 0 2px 2px 0;
+  }
+  .inbox-msg-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+  .inbox-msg-from {
+    font-size: 11px; font-weight: 600; color: var(--gold);
+    letter-spacing: 1px; text-transform: uppercase;
+  }
+  .inbox-msg-time { font-size: 11px; color: var(--text-muted); white-space: nowrap; flex-shrink: 0; }
+  .inbox-msg-subject { font-size: 14px; font-weight: 600; color: var(--white); margin-bottom: 6px; }
+  .inbox-msg-preview { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+  .inbox-msg-preview.expanded { color: rgba(255,255,255,0.75); }
+  .inbox-msg-tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    margin-top: 10px;
+    background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 20px; padding: 3px 10px;
+    font-size: 10px; font-weight: 600; color: var(--gold);
+    letter-spacing: 0.5px;
+  }
+  .inbox-msg-tag.urgent { background: rgba(226,75,74,0.12); border-color: rgba(226,75,74,0.3); color: #e88; }
+  .inbox-msg-tag.info { background: rgba(129,216,208,0.1); border-color: rgba(129,216,208,0.3); color: #81d8d0; }
+  .inbox-empty {
+    text-align: center; padding: 50px 20px;
+    font-size: 14px; color: var(--text-muted); line-height: 1.7;
+  }
+  .inbox-empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .inbox-footer {
+    padding: 14px 16px 32px;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .inbox-close-btn {
+    width: 100%; padding: 13px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px; color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    cursor: pointer;
+  }
+  /* Unread dot in menu */
+  .menu-item-badge {
+    margin-left: auto;
+    background: var(--danger); color: var(--white);
+    font-size: 10px; font-weight: 700;
+    border-radius: 10px; padding: 2px 7px;
+    display: none;
+  }
+  .menu-item-badge.visible { display: inline-block; }
 
 </style>
 </head>
@@ -1266,6 +1479,16 @@
     </div>
   </div>
   <div class="menu-items">
+    <div class="menu-item" onclick="closeMenu(); openInbox();">
+      <span class="menu-item-icon">📬</span>
+      <span>Inbox</span>
+      <span class="menu-item-badge" id="menu-inbox-badge">0</span>
+    </div>
+    <div class="menu-item" id="whats-new-menu-item" onclick="closeMenu(); openWhatsNew();">
+      <span class="menu-item-icon">✨</span>
+      <span>What's New</span>
+      <span class="whats-new-dot" id="whats-new-dot" style="display:none;"></span>
+    </div>
     <div class="menu-item" onclick="closeMenu(); openTimesheetModal();">
       <span class="menu-item-icon">📄</span>
       <span>My Timesheets</span>
@@ -1280,6 +1503,47 @@
     </div>
   </div>
   <div class="menu-footer">PI Cleaning Services © 2025</div>
+</div>
+
+<!-- WHAT'S NEW MODAL -->
+<div class="wn-modal-overlay" id="modal-whats-new">
+  <div class="wn-modal-box">
+    <div class="wn-head">
+      <div class="wn-handle"></div>
+      <div class="wn-title-row">
+        <div class="wn-title">What's <span>New</span></div>
+        <span class="wn-new-pill" id="wn-new-pill">● NEW</span>
+      </div>
+      <div class="wn-subtitle">Latest updates to PI Cleaning Services app</div>
+    </div>
+    <div class="wn-scroll" id="wn-scroll-content"></div>
+    <div class="wn-footer">
+      <button class="wn-close-btn" onclick="closeWhatsNew()">Got It</button>
+    </div>
+  </div>
+</div>
+
+<!-- INBOX MODAL -->
+<div class="inbox-modal-overlay" id="modal-inbox">
+  <div class="inbox-modal-box">
+    <div class="inbox-head">
+      <div class="inbox-handle"></div>
+      <div class="inbox-title-row">
+        <div class="inbox-title">Team <span>Inbox</span></div>
+        <span class="inbox-badge" id="inbox-unread-badge">0 new</span>
+      </div>
+      <div class="inbox-subtitle">Messages from PI Cleaning Services</div>
+    </div>
+    <div class="inbox-scroll" id="inbox-scroll-content">
+      <div class="inbox-empty">
+        <div class="inbox-empty-icon">📭</div>
+        Loading messages…
+      </div>
+    </div>
+    <div class="inbox-footer">
+      <button class="inbox-close-btn" onclick="closeInbox()">Close</button>
+    </div>
+  </div>
 </div>
 
 <!-- TIMESHEET MODAL -->
@@ -2737,8 +3001,406 @@ function exportPDF(shifts) {
 }
 
 // ══════════════════════════════════════════
+//  WHAT'S NEW
+//
+//  BEHAVIOUR RULES:
+//  1. The "What's New" menu item flashes neon green when:
+//       a) There are unseen app updates (APP_UPDATES with isNew:true), OR
+//       b) There are unread inbox messages.
+//  2. The flash + dot stop the moment the item is clicked (opened).
+//  3. "What's New" disappears from the menu after 3 total opens
+//     (click count stored in localStorage as 'pi_wn_click_count').
+//  4. It reappears ONLY when a brand-new update id or new inbox
+//     message id is added that wasn't present when it disappeared
+//     (tracked via 'pi_wn_hidden_at_state' snapshot in localStorage).
+//     When it reappears the click counter resets to 0.
+//
+//  TO ADD A NEW UPDATE: append an entry to APP_UPDATES with a
+//  unique id and isNew:true — the menu item will reappear automatically
+//  for all employees regardless of whether they dismissed it before.
+// ══════════════════════════════════════════
+const APP_UPDATES = [
+  {
+    id: 'update-001',
+    version: 'v1.0',
+    date: 'May 2025',
+    title: 'Initial Launch 🚀',
+    isNew: false,
+    features: [
+      { icon: '🕐', text: 'Clock in & clock out with GPS verification' },
+      { icon: '☕', text: 'Break tracking with automatic deduction from hours' },
+      { icon: '📍', text: 'Multi-job location tracking per shift' },
+      { icon: '📋', text: 'Incident and maintenance report submission' },
+      { icon: '📄', text: 'Timesheet export to CSV and PDF' },
+    ]
+  },
+  {
+    id: 'update-002',
+    version: 'v1.1',
+    date: 'May 2026',
+    title: 'Team Inbox & What\'s New ✨',
+    isNew: true,
+    features: [
+      { icon: '📬', text: 'Inbox — receive messages directly from PI management', badge: true },
+      { icon: '✨', text: 'What\'s New — stay up to date with every app release', badge: true },
+      { icon: '🔔', text: 'Neon flash + auto-hide after 3 opens, reappears on new content', badge: true },
+      { icon: '📖', text: 'Unread message badge on Inbox menu item' },
+    ]
+  }
+];
+
+// ── Storage keys ──────────────────────────
+const WN_SEEN_KEY       = 'pi_whats_new_seen';      // array of seen update ids
+const WN_CLICK_KEY      = 'pi_wn_click_count';       // number of times opened
+const WN_HIDDEN_KEY     = 'pi_wn_hidden_at_state';   // snapshot of ids present when hidden
+const WN_MAX_CLICKS     = 3;
+
+// ── Helpers ───────────────────────────────
+function loadSeenUpdates() {
+  try { const r = localStorage.getItem(WN_SEEN_KEY); return r ? JSON.parse(r) : []; } catch(e) { return []; }
+}
+function saveSeenUpdates(arr) {
+  try { localStorage.setItem(WN_SEEN_KEY, JSON.stringify(arr)); } catch(e) {}
+}
+function getWNClickCount() {
+  try { return parseInt(localStorage.getItem(WN_CLICK_KEY) || '0', 10); } catch(e) { return 0; }
+}
+function setWNClickCount(n) {
+  try { localStorage.setItem(WN_CLICK_KEY, String(n)); } catch(e) {}
+}
+function getHiddenAtState() {
+  try { const r = localStorage.getItem(WN_HIDDEN_KEY); return r ? JSON.parse(r) : null; } catch(e) { return null; }
+}
+function saveHiddenAtState(snapshot) {
+  try { localStorage.setItem(WN_HIDDEN_KEY, JSON.stringify(snapshot)); } catch(e) {}
+}
+function clearHiddenAtState() {
+  try { localStorage.removeItem(WN_HIDDEN_KEY); } catch(e) {}
+}
+
+// ── Core state snapshot ───────────────────
+// Returns an object describing all content IDs visible right now.
+// Used to detect whether new content appeared after the menu was hidden.
+function getCurrentContentSnapshot() {
+  const updateIds = APP_UPDATES.filter(u => u.isNew).map(u => u.id);
+  const inboxIds  = loadInboxMessages().filter(m => !m.read).map(m => m.id);
+  return { updateIds, inboxIds };
+}
+
+// ── Has new content appeared since hidden? ─
+function newContentSinceHidden() {
+  const snapshot = getHiddenAtState();
+  if (!snapshot) return false; // was never hidden, not relevant
+  const current = getCurrentContentSnapshot();
+  const newUpdate = current.updateIds.some(id => !snapshot.updateIds.includes(id));
+  const newInbox  = current.inboxIds.some(id  => !snapshot.inboxIds.includes(id));
+  return newUpdate || newInbox;
+}
+
+// ── Should the menu item be visible? ──────
+function whatsNewShouldShow() {
+  const clicks = getWNClickCount();
+  if (clicks < WN_MAX_CLICKS) return true;   // haven't hit the limit yet
+  // Hit the limit — only show again if new content appeared after hiding
+  return newContentSinceHidden();
+}
+
+// ── Should it flash? ──────────────────────
+function whatsNewShouldFlash() {
+  if (!whatsNewShouldShow()) return false;
+  const seen = loadSeenUpdates();
+  const hasNewUpdate = APP_UPDATES.some(u => u.isNew && !seen.includes(u.id));
+  const hasUnreadMsg = loadInboxMessages().some(m => !m.read);
+  return hasNewUpdate || hasUnreadMsg;
+}
+
+// ── Update the menu item appearance ───────
+function updateWhatsNewMenuState() {
+  const item = document.getElementById('whats-new-menu-item');
+  const dot  = document.getElementById('whats-new-dot');
+  if (!item || !dot) return;
+
+  const show  = whatsNewShouldShow();
+  const flash = whatsNewShouldFlash();
+
+  // Show/hide the menu item
+  item.style.display = show ? '' : 'none';
+
+  if (show) {
+    if (flash) {
+      item.classList.add('whats-new-flash');
+      dot.style.display = 'block';
+    } else {
+      item.classList.remove('whats-new-flash');
+      dot.style.display = 'none';
+    }
+  }
+}
+
+// ── Open What's New ───────────────────────
+function openWhatsNew() {
+  // Increment click count
+  const newCount = getWNClickCount() + 1;
+  setWNClickCount(newCount);
+
+  // Mark all current app updates as seen
+  const seen = loadSeenUpdates();
+  APP_UPDATES.forEach(u => { if (!seen.includes(u.id)) seen.push(u.id); });
+  saveSeenUpdates(seen);
+
+  // If this click hits the limit — save a snapshot so we can detect future new content
+  if (newCount >= WN_MAX_CLICKS) {
+    saveHiddenAtState(getCurrentContentSnapshot());
+  } else {
+    // Not yet at limit — if new content arrived after a previous hide, reset the cycle
+    if (newContentSinceHidden()) {
+      clearHiddenAtState();
+    }
+  }
+
+  renderWhatsNew();
+  document.getElementById('modal-whats-new').classList.add('open');
+
+  // Stop flash immediately
+  const item = document.getElementById('whats-new-menu-item');
+  const dot  = document.getElementById('whats-new-dot');
+  if (item) item.classList.remove('whats-new-flash');
+  if (dot)  dot.style.display = 'none';
+
+  // Re-evaluate full state after a short delay (handles edge cases)
+  setTimeout(updateWhatsNewMenuState, 500);
+}
+
+function closeWhatsNew() {
+  document.getElementById('modal-whats-new').classList.remove('open');
+  updateWhatsNewMenuState();
+}
+
+// ── Render modal content ──────────────────
+function renderWhatsNew() {
+  const seen = loadSeenUpdates();
+  const hasNew = APP_UPDATES.some(u => u.isNew && !seen.includes(u.id));
+  const pill = document.getElementById('wn-new-pill');
+  if (pill) pill.classList.toggle('visible', hasNew);
+
+  const clicks = getWNClickCount();
+  const remaining = Math.max(0, WN_MAX_CLICKS - clicks);
+
+  const container = document.getElementById('wn-scroll-content');
+  const sorted = [...APP_UPDATES].reverse();
+
+  let clickHint = '';
+  if (remaining > 0) {
+    clickHint = `<div style="text-align:center;font-size:11px;color:var(--text-muted);margin-bottom:14px;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:10px;border:1px solid rgba(255,255,255,0.06);">
+      This menu item will auto-hide after <strong style="color:var(--white);">${remaining} more open${remaining === 1 ? '' : 's'}</strong> — it reappears whenever new content arrives.
+    </div>`;
+  }
+
+  container.innerHTML = clickHint + sorted.map(upd => {
+    const isUnseen = upd.isNew && !seen.includes(upd.id);
+    const featuresHtml = upd.features.map(f => `
+      <div class="wn-feature-row">
+        <span class="wn-feature-icon">${f.icon}</span>
+        <span>${f.text}${f.badge ? '<span class="wn-new-tag">NEW</span>' : ''}</span>
+      </div>`).join('');
+
+    return `
+      <div class="wn-update-card ${isUnseen ? 'new-update' : ''}">
+        <div class="wn-update-header">
+          <span class="wn-version ${isUnseen ? 'new-ver' : ''}">${upd.version}${isUnseen ? ' · NEW' : ''}</span>
+          <span class="wn-date">${upd.date}</span>
+        </div>
+        <div class="wn-update-title ${isUnseen ? 'new-title' : ''}">${upd.title}</div>
+        <div class="wn-features">${featuresHtml}</div>
+      </div>`;
+  }).join('');
+}
+
+// ── Also re-evaluate flash when inbox changes ─
+// updateInboxBadge() already calls updateWhatsNewMenuState() directly.
+
+// ══════════════════════════════════════════
+//  INBOX
+//  Messages stored in localStorage under
+//  'pi_inbox_messages'. Unread count shown
+//  as badge on the hamburger menu item.
+// ══════════════════════════════════════════
+const INBOX_KEY = 'pi_inbox_messages';
+
+// Default/seed messages shown to all employees
+const SEED_MESSAGES = [
+  {
+    id: 'msg-001',
+    from: 'PI Management',
+    subject: 'Welcome to the PI Cleaning App 👋',
+    body: 'Hi team! Welcome to the new PI Cleaning Services employee portal. You can use this app to clock in and out, track your jobs, submit reports, and now check messages from management right here in your inbox. If you have any questions, please reach out to your supervisor.',
+    tag: 'info',
+    tagLabel: '📢 Announcement',
+    ts: Date.now() - 7 * 24 * 60 * 60 * 1000,
+  },
+  {
+    id: 'msg-002',
+    from: 'PI Management',
+    subject: 'Reminder: Always capture GPS at each job site',
+    body: 'A quick reminder to all staff — please make sure you tap the "Capture GPS" button every time you add a new job location. This is required for accurate job records and attendance verification. Thank you for your cooperation!',
+    tag: 'urgent',
+    tagLabel: '⚠️ Important',
+    ts: Date.now() - 3 * 24 * 60 * 60 * 1000,
+  },
+  {
+    id: 'msg-003',
+    from: 'PI Management',
+    subject: 'Public Holiday Rates — Please Select Correct Shift Type',
+    body: 'On public holidays, please remember to select "Public Holiday" as your Shift Type when clocking in. This ensures you are recorded correctly for payroll purposes. If you are unsure whether your shift qualifies, contact your manager before starting.',
+    tag: 'info',
+    tagLabel: '📋 Payroll',
+    ts: Date.now() - 1 * 24 * 60 * 60 * 1000,
+  }
+];
+
+function loadInboxMessages() {
+  let raw = null;
+  try { raw = localStorage.getItem(INBOX_KEY); } catch(e) {}
+  if (raw) {
+    try { return JSON.parse(raw); } catch(e) {}
+  }
+  // First time — seed with default messages and mark all unread
+  const msgs = SEED_MESSAGES.map(m => ({ ...m, read: false }));
+  saveInboxMessages(msgs);
+  return msgs;
+}
+
+function saveInboxMessages(msgs) {
+  try { localStorage.setItem(INBOX_KEY, JSON.stringify(msgs)); } catch(e) {}
+}
+
+function getUnreadCount() {
+  const msgs = loadInboxMessages();
+  return msgs.filter(m => !m.read).length;
+}
+
+function updateInboxBadge() {
+  const count = getUnreadCount();
+  const menuBadge = document.getElementById('menu-inbox-badge');
+  const modalBadge = document.getElementById('inbox-unread-badge');
+  if (menuBadge) {
+    menuBadge.textContent = count;
+    menuBadge.classList.toggle('visible', count > 0);
+  }
+  if (modalBadge) {
+    modalBadge.textContent = `${count} new`;
+    modalBadge.classList.toggle('visible', count > 0);
+  }
+  // Re-evaluate What's New flash — unread inbox msgs also trigger the neon glow
+  updateWhatsNewMenuState();
+}
+
+function openInbox() {
+  renderInbox();
+  document.getElementById('modal-inbox').classList.add('open');
+}
+
+function closeInbox() {
+  document.getElementById('modal-inbox').classList.remove('open');
+}
+
+function renderInbox() {
+  const msgs = loadInboxMessages();
+  const container = document.getElementById('inbox-scroll-content');
+
+  if (!msgs.length) {
+    container.innerHTML = `
+      <div class="inbox-empty">
+        <div class="inbox-empty-icon">📭</div>
+        <div>No messages yet.</div>
+        <div style="font-size:12px;margin-top:6px;">Check back later for updates from PI management.</div>
+      </div>`;
+    return;
+  }
+
+  // Sort newest first
+  const sorted = [...msgs].sort((a, b) => b.ts - a.ts);
+
+  container.innerHTML = sorted.map(msg => {
+    const timeStr = formatInboxTime(msg.ts);
+    const isUnread = !msg.read;
+    const tagClass = msg.tag === 'urgent' ? 'urgent' : msg.tag === 'info' ? 'info' : '';
+    return `
+      <div class="inbox-msg-card ${isUnread ? 'unread' : ''}" id="inbox-card-${msg.id}" onclick="expandInboxMsg('${msg.id}')">
+        <div class="inbox-msg-header">
+          <div class="inbox-msg-from">${msg.from}</div>
+          <div class="inbox-msg-time">${timeStr}</div>
+        </div>
+        <div class="inbox-msg-subject">${msg.subject}</div>
+        <div class="inbox-msg-preview ${isUnread ? '' : ''}" id="inbox-body-${msg.id}" style="display:none;">${msg.body}</div>
+        <div class="inbox-msg-preview" id="inbox-preview-${msg.id}">${msg.body.length > 90 ? msg.body.slice(0, 88) + '…' : msg.body}</div>
+        <div>
+          <span class="inbox-msg-tag ${tagClass}">${msg.tagLabel}</span>
+          ${isUnread ? '<span style="font-size:10px;color:var(--gold);margin-left:8px;font-weight:600;">● UNREAD</span>' : ''}
+        </div>
+      </div>`;
+  }).join('');
+
+  updateInboxBadge();
+}
+
+function expandInboxMsg(id) {
+  const msgs = loadInboxMessages();
+  const msg = msgs.find(m => m.id === id);
+  if (!msg) return;
+
+  const card = document.getElementById(`inbox-card-${id}`);
+  const preview = document.getElementById(`inbox-preview-${id}`);
+  const body = document.getElementById(`inbox-body-${id}`);
+
+  const isExpanded = card.getAttribute('data-expanded') === '1';
+  if (isExpanded) {
+    // Collapse
+    preview.style.display = 'block';
+    body.style.display = 'none';
+    card.setAttribute('data-expanded', '0');
+  } else {
+    // Expand and mark read
+    preview.style.display = 'none';
+    body.style.display = 'block';
+    card.setAttribute('data-expanded', '1');
+
+    if (!msg.read) {
+      msg.read = true;
+      const idx = msgs.findIndex(m => m.id === id);
+      if (idx !== -1) msgs[idx] = msg;
+      saveInboxMessages(msgs);
+      card.classList.remove('unread');
+      // Remove the unread indicator text
+      const unreadSpan = card.querySelector('span[style*="UNREAD"]');
+      if (unreadSpan) unreadSpan.remove();
+      // Remove left border accent
+      updateInboxBadge(); // also re-checks What's New flash
+    }
+  }
+}
+
+function formatInboxTime(ts) {
+  const now = Date.now();
+  const diff = now - ts;
+  const mins = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days === 1) return 'Yesterday';
+  if (days < 7) return `${days}d ago`;
+  return new Date(ts).toLocaleDateString('en-AU', { day: '2-digit', month: 'short' });
+}
+
+// ══════════════════════════════════════════
 //  START
 // ══════════════════════════════════════════
+// Initialise inbox badge and What's New flash on load
+updateInboxBadge();
+updateWhatsNewMenuState();
+
 init();
 </script>
 </body>
