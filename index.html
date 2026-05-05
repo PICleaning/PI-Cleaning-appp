@@ -704,6 +704,28 @@
   .menu-item-icon { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; }
   .menu-footer { padding: 16px 20px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-muted); }
 
+  /* ── INBOX — cherry red neon flash ── */
+  @keyframes cherry-flash {
+    0%   { background: rgba(220,20,60,0.0);  border-color: rgba(220,20,60,0.0);  color: var(--text-muted); box-shadow: none; }
+    18%  { background: rgba(220,20,60,0.18); border-color: rgba(220,20,60,0.75); color: #ff2d55;           box-shadow: 0 0 16px rgba(220,20,60,0.5), inset 0 0 10px rgba(220,20,60,0.12); }
+    36%  { background: rgba(220,20,60,0.04); border-color: rgba(220,20,60,0.2);  color: var(--text-muted); box-shadow: none; }
+    54%  { background: rgba(220,20,60,0.18); border-color: rgba(220,20,60,0.75); color: #ff2d55;           box-shadow: 0 0 16px rgba(220,20,60,0.5), inset 0 0 10px rgba(220,20,60,0.12); }
+    72%  { background: rgba(220,20,60,0.04); border-color: rgba(220,20,60,0.2);  color: var(--text-muted); box-shadow: none; }
+    86%  { background: rgba(220,20,60,0.14); border-color: rgba(220,20,60,0.6);  color: #ff2d55;           box-shadow: 0 0 10px rgba(220,20,60,0.35); }
+    100% { background: rgba(220,20,60,0.0);  border-color: rgba(220,20,60,0.0);  color: var(--text-muted); box-shadow: none; }
+  }
+  .menu-item.inbox-flash {
+    animation: cherry-flash 2.4s ease-in-out infinite;
+  }
+  .cherry-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #ff2d55;
+    box-shadow: 0 0 6px #ff2d55, 0 0 12px rgba(220,20,60,0.5);
+    flex-shrink: 0; margin-left: 6px;
+    animation: dot-pulse 1.4s ease-in-out infinite;
+    display: none;
+  }
+
   /* ── WHAT'S NEW — neon flash animation ── */
   @keyframes neon-flash {
     0%   { background: rgba(57,255,20,0.0);  border-color: rgba(57,255,20,0.0);  color: var(--text-muted); box-shadow: none; }
@@ -1479,10 +1501,11 @@
     </div>
   </div>
   <div class="menu-items">
-    <div class="menu-item" onclick="closeMenu(); openInbox();">
+    <div class="menu-item" id="inbox-menu-item" onclick="closeMenu(); openInbox();">
       <span class="menu-item-icon">📬</span>
       <span>Inbox</span>
       <span class="menu-item-badge" id="menu-inbox-badge">0</span>
+      <span class="cherry-dot" id="inbox-cherry-dot"></span>
     </div>
     <div class="menu-item" id="whats-new-menu-item" onclick="closeMenu(); openWhatsNew();">
       <span class="menu-item-icon">✨</span>
@@ -2080,6 +2103,73 @@ window.addEventListener('focus', () => {
 });
 
 // ══════════════════════════════════════════
+//  CHIME AUDIO ENGINE
+//  Synthesises a soft two-tone airplane cabin chime
+//  using the Web Audio API — no file download needed.
+//
+//  clockInChime()  → ascending ding-dong (D5 → A4)
+//  clockOutChime() → descending dong-ding (A4 → D5 lower)
+// ══════════════════════════════════════════
+let _audioCtx = null;
+function getAudioCtx() {
+  if (!_audioCtx) {
+    try { _audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+  }
+  return _audioCtx;
+}
+
+function playChimeTone(freq, startTime, duration, ctx, gainVal = 0.32) {
+  const osc  = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(freq, startTime);
+
+  // Soft attack, long sustain, gentle tail — exactly like a cabin chime bell
+  gain.gain.setValueAtTime(0, startTime);
+  gain.gain.linearRampToValueAtTime(gainVal, startTime + 0.04);
+  gain.gain.setValueAtTime(gainVal, startTime + 0.08);
+  gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+  osc.start(startTime);
+  osc.stop(startTime + duration);
+}
+
+function playChimeHarmonic(freq, startTime, duration, ctx) {
+  // Adds a subtle overtone to give it a bell-like metallic warmth
+  playChimeTone(freq * 2, startTime, duration * 0.5, ctx, 0.07);
+  playChimeTone(freq * 3, startTime, duration * 0.3, ctx, 0.03);
+}
+
+function clockInChime() {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  // Resume context if suspended (browser autoplay policy)
+  if (ctx.state === 'suspended') ctx.resume();
+  const now = ctx.currentTime + 0.05;
+  // Ascending: E5 (659 Hz) → B4 (494 Hz) — warm, welcoming
+  playChimeTone(659.3, now,        1.8, ctx, 0.30);
+  playChimeHarmonic(659.3, now,    1.8, ctx);
+  playChimeTone(493.9, now + 0.55, 2.2, ctx, 0.28);
+  playChimeHarmonic(493.9, now + 0.55, 2.2, ctx);
+}
+
+function clockOutChime() {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  if (ctx.state === 'suspended') ctx.resume();
+  const now = ctx.currentTime + 0.05;
+  // Descending: B4 (494 Hz) → E5 low (329 Hz) — calm, reassuring close
+  playChimeTone(493.9, now,        2.0, ctx, 0.30);
+  playChimeHarmonic(493.9, now,    2.0, ctx);
+  playChimeTone(329.6, now + 0.55, 2.5, ctx, 0.26);
+  playChimeHarmonic(329.6, now + 0.55, 2.5, ctx);
+}
+
+// ══════════════════════════════════════════
 //  CLOCK IN
 // ══════════════════════════════════════════
 function clockIn() {
@@ -2120,6 +2210,7 @@ function clockIn() {
   scheduleAutoClockOut();
   startGPSTracking();
   saveState();
+  clockInChime();
 
   sendToSheets('CLOCK_IN', {
     type: 'CLOCK_IN',
@@ -2604,6 +2695,7 @@ function clockOut() {
   });
 
   closeModal('modal-clockout');
+  clockOutChime();
   clearState();
   switchScreen('clockedout');
 }
@@ -3023,7 +3115,6 @@ const APP_UPDATES = [
   {
     id: 'update-001',
     version: 'v1.0',
-    date: 'May 2025',
     title: 'Initial Launch 🚀',
     isNew: false,
     features: [
@@ -3037,14 +3128,25 @@ const APP_UPDATES = [
   {
     id: 'update-002',
     version: 'v1.1',
-    date: 'May 2026',
     title: 'Team Inbox & What\'s New ✨',
+    isNew: false,
+    features: [
+      { icon: '📬', text: 'Inbox — receive messages directly from PI management' },
+      { icon: '✨', text: 'What\'s New — stay up to date with every app release' },
+      { icon: '🔔', text: 'Neon flash indicator on the menu when new updates arrive' },
+      { icon: '📖', text: 'Unread message badge on Inbox menu item' },
+    ]
+  },
+  {
+    id: 'update-003',
+    version: 'v1.2',
+    title: 'Smarter Notifications & Flash Alerts 🔔',
     isNew: true,
     features: [
-      { icon: '📬', text: 'Inbox — receive messages directly from PI management', badge: true },
-      { icon: '✨', text: 'What\'s New — stay up to date with every app release', badge: true },
-      { icon: '🔔', text: 'Neon flash + auto-hide after 3 opens, reappears on new content', badge: true },
-      { icon: '📖', text: 'Unread message badge on Inbox menu item' },
+      { icon: '🔴', text: 'Inbox row now flashes cherry red when you have unread messages', badge: true },
+      { icon: '🟢', text: 'What\'s New row flashes neon green when the app has been updated', badge: true },
+      { icon: '🔕', text: 'Flash stops the moment you tap the menu item', badge: true },
+      { icon: '🔄', text: 'What\'s New auto-hides after 3 opens, reappears on new content', badge: true },
     ]
   }
 ];
@@ -3054,6 +3156,23 @@ const WN_SEEN_KEY       = 'pi_whats_new_seen';      // array of seen update ids
 const WN_CLICK_KEY      = 'pi_wn_click_count';       // number of times opened
 const WN_HIDDEN_KEY     = 'pi_wn_hidden_at_state';   // snapshot of ids present when hidden
 const WN_MAX_CLICKS     = 3;
+
+// Migration: if user has seen update-002 but NOT update-003, remove update-003 from seen
+// so the new release shows up as unseen for existing employees.
+(function migrateWNSeen() {
+  try {
+    const raw = localStorage.getItem(WN_SEEN_KEY);
+    if (!raw) return;
+    let seen = JSON.parse(raw);
+    if (seen.includes('update-002') && !seen.includes('update-003')) {
+      // New update arrived — reset click count and hidden state so item reappears
+      seen = seen.filter(id => id !== 'update-003');
+      localStorage.setItem(WN_SEEN_KEY, JSON.stringify(seen));
+      localStorage.removeItem(WN_CLICK_KEY);
+      localStorage.removeItem(WN_HIDDEN_KEY);
+    }
+  } catch(e) {}
+})();
 
 // ── Helpers ───────────────────────────────
 function loadSeenUpdates() {
@@ -3208,7 +3327,6 @@ function renderWhatsNew() {
       <div class="wn-update-card ${isUnseen ? 'new-update' : ''}">
         <div class="wn-update-header">
           <span class="wn-version ${isUnseen ? 'new-ver' : ''}">${upd.version}${isUnseen ? ' · NEW' : ''}</span>
-          <span class="wn-date">${upd.date}</span>
         </div>
         <div class="wn-update-title ${isUnseen ? 'new-title' : ''}">${upd.title}</div>
         <div class="wn-features">${featuresHtml}</div>
@@ -3230,41 +3348,39 @@ const INBOX_KEY = 'pi_inbox_messages';
 // Default/seed messages shown to all employees
 const SEED_MESSAGES = [
   {
-    id: 'msg-001',
+    id: 'msg-004',
     from: 'PI Management',
-    subject: 'Welcome to the PI Cleaning App 👋',
-    body: 'Hi team! Welcome to the new PI Cleaning Services employee portal. You can use this app to clock in and out, track your jobs, submit reports, and now check messages from management right here in your inbox. If you have any questions, please reach out to your supervisor.',
-    tag: 'info',
-    tagLabel: '📢 Announcement',
-    ts: Date.now() - 7 * 24 * 60 * 60 * 1000,
-  },
-  {
-    id: 'msg-002',
-    from: 'PI Management',
-    subject: 'Reminder: Always capture GPS at each job site',
-    body: 'A quick reminder to all staff — please make sure you tap the "Capture GPS" button every time you add a new job location. This is required for accurate job records and attendance verification. Thank you for your cooperation!',
+    subject: 'Important: Select the Correct Shift Type',
+    body: 'Hi team, please remember to always select the appropriate shift type before clocking in.\n\nIf you are working on a weekend, select "Weekend" under Shift Type on the main screen. If you are working on a public holiday, select "Public Holiday".\n\nSelecting the correct shift type ensures your shift is recorded accurately. If you are unsure which type applies to your shift, please check with your supervisor before clocking in.',
     tag: 'urgent',
     tagLabel: '⚠️ Important',
-    ts: Date.now() - 3 * 24 * 60 * 60 * 1000,
-  },
-  {
-    id: 'msg-003',
-    from: 'PI Management',
-    subject: 'Public Holiday Rates — Please Select Correct Shift Type',
-    body: 'On public holidays, please remember to select "Public Holiday" as your Shift Type when clocking in. This ensures you are recorded correctly for payroll purposes. If you are unsure whether your shift qualifies, contact your manager before starting.',
-    tag: 'info',
-    tagLabel: '📋 Payroll',
-    ts: Date.now() - 1 * 24 * 60 * 60 * 1000,
+    ts: Date.now(),
   }
 ];
+
+// IDs that belong to the old message set — wipe them on load
+const LEGACY_MSG_IDS = ['msg-001', 'msg-002', 'msg-003'];
 
 function loadInboxMessages() {
   let raw = null;
   try { raw = localStorage.getItem(INBOX_KEY); } catch(e) {}
   if (raw) {
-    try { return JSON.parse(raw); } catch(e) {}
+    try {
+      let msgs = JSON.parse(raw);
+      // Migration: remove any legacy messages
+      const filtered = msgs.filter(m => !LEGACY_MSG_IDS.includes(m.id));
+      // Seed new message if not already present
+      const hasNew = filtered.some(m => m.id === 'msg-004');
+      if (!hasNew) {
+        filtered.push(...SEED_MESSAGES.map(m => ({ ...m, read: false })));
+      }
+      if (filtered.length !== msgs.length || !hasNew) {
+        saveInboxMessages(filtered);
+      }
+      return filtered;
+    } catch(e) {}
   }
-  // First time — seed with default messages and mark all unread
+  // First time — seed fresh
   const msgs = SEED_MESSAGES.map(m => ({ ...m, read: false }));
   saveInboxMessages(msgs);
   return msgs;
@@ -3281,8 +3397,11 @@ function getUnreadCount() {
 
 function updateInboxBadge() {
   const count = getUnreadCount();
-  const menuBadge = document.getElementById('menu-inbox-badge');
+  const menuBadge  = document.getElementById('menu-inbox-badge');
   const modalBadge = document.getElementById('inbox-unread-badge');
+  const inboxItem  = document.getElementById('inbox-menu-item');
+  const cherryDot  = document.getElementById('inbox-cherry-dot');
+
   if (menuBadge) {
     menuBadge.textContent = count;
     menuBadge.classList.toggle('visible', count > 0);
@@ -3291,13 +3410,22 @@ function updateInboxBadge() {
     modalBadge.textContent = `${count} new`;
     modalBadge.classList.toggle('visible', count > 0);
   }
-  // Re-evaluate What's New flash — unread inbox msgs also trigger the neon glow
+  // Cherry red neon flash on inbox menu row when there are unread messages
+  if (inboxItem) inboxItem.classList.toggle('inbox-flash', count > 0);
+  if (cherryDot)  cherryDot.style.display = count > 0 ? 'inline-block' : 'none';
+
+  // Re-evaluate What's New flash too
   updateWhatsNewMenuState();
 }
 
 function openInbox() {
   renderInbox();
   document.getElementById('modal-inbox').classList.add('open');
+  // Stop the cherry red flash immediately on click
+  const inboxItem = document.getElementById('inbox-menu-item');
+  const cherryDot = document.getElementById('inbox-cherry-dot');
+  if (inboxItem) inboxItem.classList.remove('inbox-flash');
+  if (cherryDot)  cherryDot.style.display = 'none';
 }
 
 function closeInbox() {
