@@ -1166,7 +1166,8 @@
     <button class="btn-clockin" id="btn-ci" onclick="clockIn()" disabled>
       Clock In to Start Shift
     </button>
-    <div style="height:30px;"></div>
+    <div style="height:18px;"></div>
+    <div style="text-align:center;font-size:11px;color:rgba(138,155,181,0.45);letter-spacing:1px;padding-bottom:24px;">PI Cleaning Services · v1.6</div>
   </div>
 </div>
 
@@ -1369,46 +1370,64 @@
 </div>
 
 <!-- MODAL: GUIDED TOUR -->
-<div class="modal-overlay" id="modal-tour">
-  <div class="modal-box" style="max-height:88vh;overflow-y:auto;">
+<div class="modal-overlay" id="modal-tour" style="align-items:center;padding:20px;">
+  <div class="modal-box" style="max-height:88vh;overflow-y:auto;border-radius:24px;width:100%;max-width:430px;">
     <div class="modal-handle"></div>
     <div class="modal-title">App <span>Guide</span></div>
-    <div style="font-size:12px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;">PI Cleaning Services · Employee Guide</div>
+    <div style="font-size:11px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;">PI Cleaning Services · Employee Guide</div>
 
-    <div style="font-size:13px;color:var(--text-muted);line-height:1.75;display:flex;flex-direction:column;gap:14px;">
+    <div style="display:flex;flex-direction:column;gap:12px;">
 
-      <div style="background:rgba(226,75,74,0.08);border-left:3px solid #e24b4a;border-radius:0 8px 8px 0;padding:12px 14px;">
-        <div style="color:#e24b4a;font-weight:600;font-size:13px;margin-bottom:4px;">🚨 Do NOT Force-Close This App</div>
-        If you force-close or swipe away this app during your shift, the system <strong style="color:var(--white);">will not receive your clock-out</strong> and your shift timer will stop updating. This may affect your pay records. Always use the <strong style="color:var(--white);">Clock Out</strong> button to end your shift properly.
+      <div class="tour-warning">
+        <div class="tour-card-icon">🚨</div>
+        <div>
+          <div class="tour-card-title" style="color:#e24b4a;">Do NOT Force-Close This App</div>
+          <div class="tour-card-body">If you force-close or swipe away this app during your shift, the system <strong style="color:var(--white);">will not receive your clock-out</strong> and your shift timer will stop updating. This may affect your pay records. Always use the <strong style="color:var(--white);">Clock Out</strong> button to end your shift properly.</div>
+        </div>
       </div>
 
-      <div style="background:rgba(129,216,208,0.07);border-left:3px solid rgba(129,216,208,0.5);border-radius:0 8px 8px 0;padding:12px 14px;">
-        <div style="color:#81d8d0;font-weight:600;font-size:13px;margin-bottom:4px;">🔵 How to Know Your Location Is Being Tracked</div>
-        When you are clocked in, look at the <strong style="color:#81d8d0;">Tiffany blue pill</strong> on your shift timer showing the current day — for example "Monday". As long as that pill is visible and glowing teal, your location is actively being tracked. If it disappears and reverts to plain text, tracking has paused (e.g. you are on break or GPS is temporarily unavailable).
+      <div class="tour-tiffany">
+        <div class="tour-card-icon" style="font-size:18px;padding-top:2px;">
+          <div style="background:rgba(129,216,208,0.12);border:1.5px solid rgba(129,216,208,0.4);border-radius:20px;padding:3px 10px;font-size:11px;color:#81d8d0;font-weight:600;white-space:nowrap;">Mon</div>
+        </div>
+        <div>
+          <div class="tour-card-title" style="color:#81d8d0;">How to Know Your Location Is Being Tracked</div>
+          <div class="tour-card-body">When you are clocked in, look at the <strong style="color:#81d8d0;">Tiffany blue pill</strong> on your shift timer showing the current day — for example "Monday". As long as that pill is visible and glowing teal, your location is actively being tracked. If it disappears and reverts to plain text, tracking has paused (e.g. you are on break or GPS is temporarily unavailable).</div>
+        </div>
       </div>
 
-      <div>
-        <div style="color:var(--white);font-weight:600;margin-bottom:4px;">📍 Always Capture GPS When Adding a Job</div>
-        When you tap <strong style="color:var(--white);">+ Add Job</strong>, you must tap the GPS button before confirming. This records your exact location at that job site and is required for each new location.
+      <div class="tour-card">
+        <div class="tour-card-icon">📍</div>
+        <div>
+          <div class="tour-card-title">Always Capture GPS When Adding a Job</div>
+          <div class="tour-card-body">When you tap <strong style="color:var(--white);">+ Add Job</strong>, you must tap the GPS button before confirming. This records your exact location at that job site and is required for each new location.</div>
+        </div>
       </div>
 
-      <div>
-        <div style="color:var(--white);font-weight:600;margin-bottom:4px;">☕ Taking a Break</div>
-        Tap <strong style="color:var(--white);">Break</strong> in the top-right when you start your break. Tap <strong style="color:var(--white);">Resume</strong> when you're back. Break time is automatically deducted from your total hours. Location tracking pauses during breaks.
+      <div class="tour-card">
+        <div class="tour-card-icon">☕</div>
+        <div>
+          <div class="tour-card-title">Taking a Break</div>
+          <div class="tour-card-body">Tap <strong style="color:var(--white);">Break</strong> in the top-right when you start your break. Tap <strong style="color:var(--white);">Resume</strong> when you're back. Break time is automatically deducted from your total hours. Location tracking pauses during breaks.</div>
+        </div>
       </div>
 
-      <div>
-        <div style="color:var(--white);font-weight:600;margin-bottom:4px;">💾 If You Close &amp; Reopen the App</div>
-        If you close the browser tab and reopen it during your shift, your session will be <strong style="color:var(--white);">automatically restored</strong> — your timer continues from where it left off. Your name and Employee ID are remembered for <strong style="color:var(--white);">7 days</strong> so you only need to enter your job address each shift.
+      <div class="tour-card">
+        <div class="tour-card-icon">💾</div>
+        <div>
+          <div class="tour-card-title">If You Close & Reopen the App</div>
+          <div class="tour-card-body">If you close the browser tab and reopen it during your shift, your session will be <strong style="color:var(--white);">automatically restored</strong> — your timer continues from where it left off. Your name and Employee ID are remembered for <strong style="color:var(--white);">7 days</strong> so you only need to enter your job address each shift.</div>
+        </div>
       </div>
 
-      <div>
-        <div style="color:var(--white);font-weight:600;margin-bottom:4px;">⏹ When Location Tracking Stops</div>
-        Your location is only tracked during active shifts. Tracking stops the moment you tap <strong style="color:var(--white);">Clock Out</strong>, or automatically after a 12-hour maximum shift. No data is collected outside of your shift hours.
-      </div>
+    </div>
 
-      <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:10px;padding:12px 14px;font-size:12px;">
-        For any questions about how the app works, please speak with your supervisor or the PI Cleaning Services management team.
+      <div class="tour-card">
+        <div class="tour-card-icon">⏹</div>
+        <div>
+          <div class="tour-card-title">When Location Tracking Stops</div>
+          <div class="tour-card-body">Your location is only tracked during active shifts. Tracking stops the moment you tap <strong style="color:var(--white);">Clock Out</strong>, or automatically after a 12-hour maximum shift. No data is collected outside of your shift hours.</div>
+        </div>
       </div>
 
     </div>
@@ -1507,7 +1526,7 @@
       <span>App Guide</span>
     </div>
   </div>
-  <div class="menu-footer">PI Cleaning Services © 2025<br><span style="font-size:10px;color:rgba(138,155,181,0.55);letter-spacing:0.5px;">Current version v1.4</span></div>
+  <div class="menu-footer">PI Cleaning Services © 2025<br><span style="font-size:10px;color:rgba(138,155,181,0.5);letter-spacing:0.5px;">Current version v1.6</span></div>
 </div>
 
 <!-- WHAT'S NEW MODAL -->
@@ -1573,9 +1592,63 @@
         ⬇ PDF
       </button>
     </div>
+    <div style="padding: 0 16px 8px; display:flex; gap:10px;">
+      <button onclick="shareTimesheetWhatsApp('wa')" style="flex:1;padding:13px 10px;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;background:rgba(37,211,102,0.1);border:1px solid rgba(37,211,102,0.4);color:#25d366;transition:all 0.2s;" ontouchstart="this.style.transform='scale(0.97)'" ontouchend="this.style.transform=''">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.558 4.117 1.532 5.845L.057 23.943l6.284-1.648C8.01 23.41 9.97 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.833 0-3.555-.493-5.038-1.353l-.36-.214-3.734.979.999-3.645-.235-.374C2.573 15.673 2 13.898 2 12 2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+        WhatsApp
+      </button>
+      <button onclick="shareTimesheetWhatsApp('wab')" style="flex:1;padding:13px 10px;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;background:rgba(37,211,102,0.07);border:1px solid rgba(37,211,102,0.25);color:#25d366;transition:all 0.2s;" ontouchstart="this.style.transform='scale(0.97)'" ontouchend="this.style.transform=''">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.558 4.117 1.532 5.845L.057 23.943l6.284-1.648C8.01 23.41 9.97 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.833 0-3.555-.493-5.038-1.353l-.36-.214-3.734.979.999-3.645-.235-.374C2.573 15.673 2 13.898 2 12 2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+        WA Business
+      </button>
+    </div>
+    <div style="padding: 0 16px 8px;">
+      <button onclick="openDeleteTimesheetsConfirm()" style="width:100%;padding:13px 10px;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(226,75,74,0.08);border:1px solid rgba(226,75,74,0.3);color:var(--danger);transition:all 0.2s;" ontouchstart="this.style.transform='scale(0.97)'" ontouchend="this.style.transform=''">
+        🗑 Delete All Timesheets
+      </button>
+    </div>
     <div style="padding: 0 16px 24px;">
       <button class="ts-close-btn" onclick="closeTimesheetModal()">Close</button>
     </div>
+  </div>
+</div>
+
+<!-- MODAL: DELETE TIMESHEETS CONFIRM -->
+<div class="modal-overlay" id="modal-delete-ts" style="z-index:700;">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title" style="color:var(--danger);">Delete <span style="color:var(--danger);">All Timesheets?</span></div>
+    <div style="background:rgba(226,75,74,0.08);border:1px solid rgba(226,75,74,0.25);border-radius:12px;padding:14px 16px;margin-bottom:16px;">
+      <div style="font-size:13px;font-weight:600;color:#fda4af;margin-bottom:8px;">⚠️ This action cannot be undone</div>
+      <div style="font-size:13px;color:var(--text-muted);line-height:1.65;">All timesheet records stored on this device will be <strong style="color:var(--white);">permanently deleted</strong>. This includes all shift history, hours worked, and job records.</div>
+    </div>
+    <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.25);border-radius:12px;padding:14px 16px;margin-bottom:20px;">
+      <div style="font-size:12px;font-weight:700;color:var(--gold);letter-spacing:0.5px;margin-bottom:8px;">📥 Before you delete — save your records</div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.65;">Please <strong style="color:var(--white);">download your CSV or PDF</strong> first, or take a screenshot of your timesheets. Once deleted, these records cannot be recovered from this device.</div>
+    </div>
+    <button onclick="confirmDeleteTimesheets()" style="width:100%;background:linear-gradient(135deg,var(--danger),#a02020);border:none;border-radius:12px;padding:14px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;color:white;cursor:pointer;margin-bottom:10px;">
+      Yes, Delete Everything
+    </button>
+    <button class="modal-cancel" onclick="closeModal('modal-delete-ts')">Cancel — Keep My Records</button>
+  </div>
+</div>
+
+<!-- MODAL: FORCE-CLOSE REMINDER (shown every time app regains focus while clocked in) -->
+<div class="modal-overlay" id="modal-forceclose-reminder" style="z-index:650;align-items:center;padding:24px;">
+  <div class="modal-box" style="border-radius:24px;border:1px solid rgba(226,75,74,0.4);max-width:390px;">
+    <div style="text-align:center;margin-bottom:16px;">
+      <div style="font-size:44px;margin-bottom:10px;">🚨</div>
+      <div style="font-family:'Playfair Display',serif;font-size:20px;color:var(--white);margin-bottom:6px;">Important Reminder</div>
+      <div style="font-size:11px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;">Please read before continuing</div>
+    </div>
+    <div style="background:rgba(226,75,74,0.09);border:1px solid rgba(226,75,74,0.3);border-radius:14px;padding:16px;margin-bottom:20px;">
+      <div style="font-size:14px;color:var(--white);font-weight:600;margin-bottom:8px;line-height:1.4;">Do NOT force-close this app during your shift</div>
+      <div style="font-size:13px;color:var(--text-muted);line-height:1.7;">If you swipe away or force-close this app, the system <strong style="color:var(--white);">will not receive your clock-out</strong>. Your shift timer will stop and this <strong style="color:#fda4af;">may affect your shift time and your future pay</strong>.</div>
+    </div>
+    <div style="font-size:12px;color:var(--text-muted);text-align:center;margin-bottom:16px;line-height:1.6;">Always use the <strong style="color:var(--white);">Clock Out</strong> button to end your shift properly.</div>
+    <button onclick="closeForceCloseReminder()" style="width:100%;background:linear-gradient(135deg,var(--gold),#a8892e);border:none;border-radius:12px;padding:14px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;color:var(--navy);cursor:pointer;">
+      I Understand — Continue
+    </button>
   </div>
 </div>
 
@@ -3075,6 +3148,77 @@ function exportPDF(shifts) {
 }
 
 // ══════════════════════════════════════════
+//  SHARE TIMESHEET VIA WHATSAPP
+//  Builds a clean plain-text summary of the
+//  last 7 shifts and opens WhatsApp (or WA
+//  Business) with that text pre-filled.
+//  'app' param: 'wa' = WhatsApp, 'wab' = WA Business
+// ══════════════════════════════════════════
+function shareTimesheetWhatsApp(app) {
+  const shifts = loadTimesheets();
+  if (!shifts.length) { showToast('No timesheet records to share'); return; }
+
+  const recent = shifts.slice(-7);
+  const empName = recent[0]?.employeeName || 'Employee';
+  const empId   = recent[0]?.employeeId   || '';
+  const genDate = new Date().toLocaleDateString('en-AU', { day:'2-digit', month:'long', year:'numeric' });
+  const totalSecs = recent.reduce((sum, s) => sum + (s.totalWorkedSecs || 0), 0);
+
+  let lines = [];
+  lines.push('📋 *PI Cleaning Services — Timesheet*');
+  lines.push(`👤 *${empName}*  |  ID: ${empId}`);
+  lines.push(`📅 Generated: ${genDate}`);
+  lines.push('─────────────────────────');
+
+  recent.forEach((s, i) => {
+    lines.push(`\n*Shift ${i + 1} — ${s.date || '—'}*`);
+    lines.push(`  🕐 Clock In: ${s.clockIn || '—'}`);
+    lines.push(`  🕓 Clock Out: ${s.clockOut || '—'}`);
+    lines.push(`  ⏱ Hours Worked: *${s.totalWorked || '—'}*`);
+    lines.push(`  ☕ Break: ${s.totalBreak || '0:00'}`);
+    if (s.jobs && s.jobs.length) {
+      lines.push(`  📍 Jobs (${s.jobs.length}):`);
+      s.jobs.forEach(j => lines.push(`     • ${j.address}`));
+    }
+  });
+
+  lines.push('\n─────────────────────────');
+  lines.push(`*Total Hours (${recent.length} shifts): ${secToHMS(totalSecs)}*`);
+  lines.push('\n_Sent via PI Cleaning Services App v1.6_');
+
+  const text = encodeURIComponent(lines.join('\n'));
+
+  // WhatsApp uses whatsapp://, WA Business uses whatsapp-business://
+  // Both fall back to wa.me on desktop
+  let url;
+  if (app === 'wab') {
+    // WA Business deep link — opens WA Business if installed
+    url = `whatsapp://send?text=${text}`;
+    // Try WA Business scheme first via intent-style redirect
+    const waBusinessUrl = `intent://send?text=${text}#Intent;package=com.whatsapp.w4b;scheme=whatsapp;end`;
+    // On iOS there's no intent, use universal link with a small delay fallback
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    if (isIOS) {
+      // iOS: WA Business uses same URL scheme but different bundle
+      window.location.href = `https://wa.me/?text=${text}`;
+    } else {
+      // Android: try WA Business package
+      try { window.location.href = waBusinessUrl; } catch(e) { window.open(`https://wa.me/?text=${text}`, '_blank'); }
+    }
+  } else {
+    // Standard WhatsApp
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    if (isIOS) {
+      window.location.href = `whatsapp://send?text=${text}`;
+    } else {
+      window.open(`https://wa.me/?text=${text}`, '_blank');
+    }
+  }
+
+  showToast('✓ Opening WhatsApp…');
+}
+
+// ══════════════════════════════════════════
 //  WHAT'S NEW
 //
 //  BEHAVIOUR RULES:
@@ -3132,13 +3276,27 @@ const APP_UPDATES = [
     ]
   },
   {
-    id: 'update-004',
-    version: 'v1.4',
-    title: 'Version Badge & Centred App Guide 🎨',
+    id: 'update-005',
+    version: 'v1.5',
+    title: 'Timesheet Delete, Shift Reminder & Version Badge 🗑️🔔',
+    isNew: false,
+    features: [
+      { icon: '🗑️', text: 'Delete All Timesheets button — remove all records from this device' },
+      { icon: '⚠️', text: 'Delete confirmation warns you to download or screenshot first — data cannot be recovered' },
+      { icon: '🚨', text: 'Force-close reminder — every time you return to the app during a shift, a reminder confirms you must not force-close' },
+      { icon: '🏷️', text: 'Current version displayed at the bottom of the menu — always know which version you\'re running' },
+    ]
+  },
+  {
+    id: 'update-006',
+    version: 'v1.6',
+    title: 'Share Timesheets via WhatsApp 📤',
     isNew: true,
     features: [
-      { icon: '🏷️', text: 'Current app version now shown at the bottom of the menu — always know which version you\'re on', badge: true },
-      { icon: '📐', text: 'App Guide screen redesigned to match the clean, centred layout of the Privacy Policy screen', badge: true },
+      { icon: '📤', text: 'Share timesheet via WhatsApp — tap the WhatsApp button in My Timesheets to send your PDF summary directly', badge: true },
+      { icon: '💼', text: 'Share via WhatsApp Business — a separate button opens WA Business app for professional sharing', badge: true },
+      { icon: '📄', text: 'Timesheet is formatted as a clean text summary ready to send in one tap', badge: true },
+      { icon: '🏷️', text: 'App version v1.6 now displayed at the bottom of the main clock-in screen', badge: true },
     ]
   }
 ];
@@ -3157,15 +3315,21 @@ const WN_MAX_CLICKS     = 3;
     if (!raw) return;
     let seen = JSON.parse(raw);
     if (seen.includes('update-002') && !seen.includes('update-003')) {
-      // New update arrived — reset click count and hidden state so item reappears
       seen = seen.filter(id => id !== 'update-003');
       localStorage.setItem(WN_SEEN_KEY, JSON.stringify(seen));
       localStorage.removeItem(WN_CLICK_KEY);
       localStorage.removeItem(WN_HIDDEN_KEY);
     }
-    // v1.4 migration: if user has seen update-003 but NOT update-004
-    if (seen.includes('update-003') && !seen.includes('update-004')) {
-      seen = seen.filter(id => id !== 'update-004');
+    // v1.5 migration: reset so existing employees see the new update
+    if (seen.includes('update-003') && !seen.includes('update-005')) {
+      seen = seen.filter(id => id !== 'update-005');
+      localStorage.setItem(WN_SEEN_KEY, JSON.stringify(seen));
+      localStorage.removeItem(WN_CLICK_KEY);
+      localStorage.removeItem(WN_HIDDEN_KEY);
+    }
+    // v1.6 migration: reset so existing employees see the new update
+    if (seen.includes('update-005') && !seen.includes('update-006')) {
+      seen = seen.filter(id => id !== 'update-006');
       localStorage.setItem(WN_SEEN_KEY, JSON.stringify(seen));
       localStorage.removeItem(WN_CLICK_KEY);
       localStorage.removeItem(WN_HIDDEN_KEY);
@@ -3520,6 +3684,43 @@ function formatInboxTime(ts) {
   if (days < 7) return `${days}d ago`;
   return new Date(ts).toLocaleDateString('en-AU', { day: '2-digit', month: 'short' });
 }
+
+// ══════════════════════════════════════════
+//  DELETE TIMESHEETS
+// ══════════════════════════════════════════
+function openDeleteTimesheetsConfirm() {
+  document.getElementById('modal-delete-ts').classList.add('open');
+}
+
+function confirmDeleteTimesheets() {
+  // Clear all timesheet data from localStorage
+  try { localStorage.removeItem(TS_STORAGE_KEY); } catch(e) {}
+  closeModal('modal-delete-ts');
+  closeTimesheetModal();
+  showToast('✓ All timesheets deleted from this device');
+}
+
+// ══════════════════════════════════════════
+//  FORCE-CLOSE REMINDER
+//  Shows every time the user returns to the
+//  app (via visibilitychange) while clocked in.
+// ══════════════════════════════════════════
+function showForceCloseReminder() {
+  // Only show while actively clocked in
+  if (state.screen !== 'working') return;
+  document.getElementById('modal-forceclose-reminder').classList.add('open');
+}
+
+function closeForceCloseReminder() {
+  document.getElementById('modal-forceclose-reminder').classList.remove('open');
+}
+
+// Hook into page visibility API — fires when user tabs back or returns from another app
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    showForceCloseReminder();
+  }
+});
 
 // ══════════════════════════════════════════
 //  START
