@@ -1167,16 +1167,36 @@
       Clock In to Start Shift
     </button>
     <div style="height:18px;"></div>
-    <div style="text-align:center;font-size:11px;color:rgba(138,155,181,0.45);letter-spacing:1px;padding-bottom:24px;">PI Cleaning Services · v1.6</div>
+    <div style="text-align:center;font-size:11px;color:rgba(138,155,181,0.45);letter-spacing:1px;padding-bottom:24px;">PI Cleaning Services · v1.7</div>
   </div>
 </div>
 
 <!-- WORKING -->
 <div id="working" class="screen">
   <div class="app-header">
-    <div>
-      <div class="header-title">On the Clock</div>
-      <div class="header-sub" id="work-employee-name">—</div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <!-- Compass in top-left -->
+      <div id="compass-widget" style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+        <div style="position:relative;width:44px;height:44px;">
+          <svg id="compass-svg" viewBox="0 0 44 44" width="44" height="44" style="transition:transform 0.5s cubic-bezier(.4,0,.2,1);display:block;">
+            <circle cx="22" cy="22" r="20" fill="rgba(201,168,76,0.08)" stroke="rgba(201,168,76,0.35)" stroke-width="1.5"/>
+            <circle cx="22" cy="22" r="1.5" fill="var(--gold)"/>
+            <!-- N needle (gold) -->
+            <polygon points="22,6 24.5,22 22,19 19.5,22" fill="var(--gold)"/>
+            <!-- S needle (muted) -->
+            <polygon points="22,38 24.5,22 22,25 19.5,22" fill="rgba(138,155,181,0.5)"/>
+            <!-- Cardinal labels -->
+            <text x="22" y="4.5" text-anchor="middle" font-size="5" fill="var(--gold)" font-family="DM Sans,sans-serif" font-weight="700">N</text>
+            <text x="22" y="43" text-anchor="middle" font-size="4.5" fill="rgba(138,155,181,0.5)" font-family="DM Sans,sans-serif">S</text>
+            <text x="41" y="23" text-anchor="middle" font-size="4.5" fill="rgba(138,155,181,0.5)" font-family="DM Sans,sans-serif">E</text>
+            <text x="3" y="23" text-anchor="middle" font-size="4.5" fill="rgba(138,155,181,0.5)" font-family="DM Sans,sans-serif">W</text>
+          </svg>
+        </div>
+        <div id="compass-dir-label" style="font-size:9px;color:var(--gold);font-weight:700;letter-spacing:1px;">—</div>
+      </div>
+      <div>
+        <div class="header-sub" id="work-employee-name">—</div>
+      </div>
     </div>
     <div style="display:flex;gap:8px;align-items:center;">
       <button class="hamburger-btn" onclick="openMenu()" aria-label="Menu">
@@ -1236,6 +1256,13 @@
         <div class="bt-history-title">Break History</div>
         <div class="bt-history-list" id="bt-history-list"></div>
       </div>
+    </div>
+
+    <!-- On the Clock status (moved from banner) -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px 14px;background:rgba(29,158,117,0.08);border:1px solid rgba(29,158,117,0.3);border-radius:12px;" id="on-the-clock-bar">
+      <div class="dot" style="background:var(--success);flex-shrink:0;"></div>
+      <div style="font-size:13px;font-weight:600;color:var(--success);">On the Clock</div>
+      <div style="margin-left:auto;font-size:11px;color:var(--text-muted);" id="on-clock-since">—</div>
     </div>
 
     <!-- Employee Info -->
@@ -1370,64 +1397,47 @@
 </div>
 
 <!-- MODAL: GUIDED TOUR -->
-<div class="modal-overlay" id="modal-tour" style="align-items:center;padding:20px;">
-  <div class="modal-box" style="max-height:88vh;overflow-y:auto;border-radius:24px;width:100%;max-width:430px;">
+<div class="modal-overlay" id="modal-tour" style="align-items:flex-end;padding:0;">
+  <div class="modal-box" style="max-height:85vh;overflow-y:auto;">
     <div class="modal-handle"></div>
     <div class="modal-title">App <span>Guide</span></div>
-    <div style="font-size:11px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;">PI Cleaning Services · Employee Guide</div>
 
-    <div style="display:flex;flex-direction:column;gap:12px;">
+    <div style="font-size:12px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;">PI Cleaning Services · Employee Guide</div>
 
-      <div class="tour-warning">
-        <div class="tour-card-icon">🚨</div>
-        <div>
-          <div class="tour-card-title" style="color:#e24b4a;">Do NOT Force-Close This App</div>
-          <div class="tour-card-body">If you force-close or swipe away this app during your shift, the system <strong style="color:var(--white);">will not receive your clock-out</strong> and your shift timer will stop updating. This may affect your pay records. Always use the <strong style="color:var(--white);">Clock Out</strong> button to end your shift properly.</div>
-        </div>
+    <div style="font-size:13px;color:var(--text-muted);line-height:1.75;display:flex;flex-direction:column;gap:14px;">
+
+      <div style="background:rgba(226,75,74,0.09);border-left:3px solid #e24b4a;border-radius:0 8px 8px 0;padding:12px 14px;">
+        <div style="color:#e24b4a;font-weight:600;font-size:13px;margin-bottom:4px;">🚨 Do NOT Force-Close This App</div>
+        If you force-close or swipe away this app during your shift, the system <strong style="color:var(--white);">will not receive your clock-out</strong> and your shift timer will stop updating. This may affect your pay records. Always use the <strong style="color:var(--white);">Clock Out</strong> button to end your shift properly.
       </div>
 
-      <div class="tour-tiffany">
-        <div class="tour-card-icon" style="font-size:18px;padding-top:2px;">
-          <div style="background:rgba(129,216,208,0.12);border:1.5px solid rgba(129,216,208,0.4);border-radius:20px;padding:3px 10px;font-size:11px;color:#81d8d0;font-weight:600;white-space:nowrap;">Mon</div>
-        </div>
-        <div>
-          <div class="tour-card-title" style="color:#81d8d0;">How to Know Your Location Is Being Tracked</div>
-          <div class="tour-card-body">When you are clocked in, look at the <strong style="color:#81d8d0;">Tiffany blue pill</strong> on your shift timer showing the current day — for example "Monday". As long as that pill is visible and glowing teal, your location is actively being tracked. If it disappears and reverts to plain text, tracking has paused (e.g. you are on break or GPS is temporarily unavailable).</div>
-        </div>
+      <div style="background:rgba(129,216,208,0.07);border-left:3px solid rgba(129,216,208,0.5);border-radius:0 8px 8px 0;padding:12px 14px;">
+        <div style="color:#81d8d0;font-weight:600;font-size:13px;margin-bottom:4px;">🔵 How to Know Your Location Is Being Tracked</div>
+        When you are clocked in, look at the <strong style="color:#81d8d0;">Tiffany blue pill</strong> on your shift timer showing the current day — for example "Monday". As long as that pill is visible and glowing teal, your location is actively being tracked. If it disappears and reverts to plain text, tracking has paused (e.g. you are on break or GPS is temporarily unavailable).
       </div>
 
-      <div class="tour-card">
-        <div class="tour-card-icon">📍</div>
-        <div>
-          <div class="tour-card-title">Always Capture GPS When Adding a Job</div>
-          <div class="tour-card-body">When you tap <strong style="color:var(--white);">+ Add Job</strong>, you must tap the GPS button before confirming. This records your exact location at that job site and is required for each new location.</div>
-        </div>
+      <div>
+        <div style="color:var(--white);font-weight:600;margin-bottom:4px;">📍 Always Capture GPS When Adding a Job</div>
+        When you tap <strong style="color:var(--white);">+ Add Job</strong>, you must tap the GPS button before confirming. This records your exact location at that job site and is required for each new location.
       </div>
 
-      <div class="tour-card">
-        <div class="tour-card-icon">☕</div>
-        <div>
-          <div class="tour-card-title">Taking a Break</div>
-          <div class="tour-card-body">Tap <strong style="color:var(--white);">Break</strong> in the top-right when you start your break. Tap <strong style="color:var(--white);">Resume</strong> when you're back. Break time is automatically deducted from your total hours. Location tracking pauses during breaks.</div>
-        </div>
+      <div>
+        <div style="color:var(--white);font-weight:600;margin-bottom:4px;">☕ Taking a Break</div>
+        Tap <strong style="color:var(--white);">Break</strong> in the top-right when you start your break. Tap <strong style="color:var(--white);">Resume</strong> when you're back. Break time is automatically deducted from your total hours. Location tracking pauses during breaks.
       </div>
 
-      <div class="tour-card">
-        <div class="tour-card-icon">💾</div>
-        <div>
-          <div class="tour-card-title">If You Close & Reopen the App</div>
-          <div class="tour-card-body">If you close the browser tab and reopen it during your shift, your session will be <strong style="color:var(--white);">automatically restored</strong> — your timer continues from where it left off. Your name and Employee ID are remembered for <strong style="color:var(--white);">7 days</strong> so you only need to enter your job address each shift.</div>
-        </div>
+      <div>
+        <div style="color:var(--white);font-weight:600;margin-bottom:4px;">💾 If You Close &amp; Reopen the App</div>
+        If you close the browser tab and reopen it during your shift, your session will be <strong style="color:var(--white);">automatically restored</strong> — your timer continues from where it left off. Your name and Employee ID are remembered for <strong style="color:var(--white);">1 year</strong> so you only need to enter your job address each shift.
       </div>
 
-    </div>
+      <div>
+        <div style="color:var(--white);font-weight:600;margin-bottom:4px;">⏹ When Location Tracking Stops</div>
+        Your location is only tracked during active shifts. Tracking stops the moment you tap <strong style="color:var(--white);">Clock Out</strong>, or automatically after a 12-hour maximum shift. No data is collected outside of your shift hours.
+      </div>
 
-      <div class="tour-card">
-        <div class="tour-card-icon">⏹</div>
-        <div>
-          <div class="tour-card-title">When Location Tracking Stops</div>
-          <div class="tour-card-body">Your location is only tracked during active shifts. Tracking stops the moment you tap <strong style="color:var(--white);">Clock Out</strong>, or automatically after a 12-hour maximum shift. No data is collected outside of your shift hours.</div>
-        </div>
+      <div style="background:rgba(226,75,74,0.08);border:1px solid rgba(226,75,74,0.2);border-radius:10px;padding:12px 14px;font-size:12px;">
+        For any questions about the app, please contact your manager or the PI Cleaning Services administration team.
       </div>
 
     </div>
@@ -1508,6 +1518,11 @@
       <span class="menu-item-badge" id="menu-inbox-badge">0</span>
       <span class="cherry-dot" id="inbox-cherry-dot"></span>
     </div>
+    <div class="menu-item" id="on-clock-menu-item" style="display:none;">
+      <span class="menu-item-icon">🟢</span>
+      <span>On the Clock</span>
+      <span style="margin-left:auto;font-size:11px;color:var(--success);font-weight:600;" id="menu-on-clock-since">—</span>
+    </div>
     <div class="menu-item" id="whats-new-menu-item" onclick="closeMenu(); openWhatsNew();">
       <span class="menu-item-icon">✨</span>
       <span>What's New</span>
@@ -1516,6 +1531,10 @@
     <div class="menu-item" onclick="closeMenu(); openTimesheetModal();">
       <span class="menu-item-icon">📄</span>
       <span>My Timesheets</span>
+    </div>
+    <div class="menu-item" onclick="closeMenu(); openPersonalStats();">
+      <span class="menu-item-icon">📊</span>
+      <span>Personal Stats</span>
     </div>
     <div class="menu-item" onclick="closeMenu(); openModal('modal-privacy');">
       <span class="menu-item-icon">🔒</span>
@@ -1526,7 +1545,26 @@
       <span>App Guide</span>
     </div>
   </div>
-  <div class="menu-footer">PI Cleaning Services © 2025<br><span style="font-size:10px;color:rgba(138,155,181,0.5);letter-spacing:0.5px;">Current version v1.6</span></div>
+  <div class="menu-footer">PI Cleaning Services © 2025<br><span style="font-size:10px;color:rgba(138,155,181,0.5);letter-spacing:0.5px;">Current version v1.7</span></div>
+</div>
+
+<!-- PERSONAL STATS MODAL -->
+<div class="wn-modal-overlay" id="modal-personal-stats">
+  <div class="wn-modal-box">
+    <div class="wn-head">
+      <div class="wn-handle"></div>
+      <div class="wn-title-row">
+        <div class="wn-title">Personal <span style="color:var(--gold);">Stats</span></div>
+      </div>
+      <div class="wn-subtitle">Your job performance — last 7 days</div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:16px;" id="stats-scroll-content">
+      <div style="text-align:center;padding:40px 20px;color:var(--text-muted);">Loading…</div>
+    </div>
+    <div class="wn-footer">
+      <button class="wn-close-btn" onclick="closePersonalStats()">Close</button>
+    </div>
+  </div>
 </div>
 
 <!-- WHAT'S NEW MODAL -->
@@ -1576,7 +1614,7 @@
     <div class="ts-modal-head">
       <div class="ts-handle"></div>
       <div class="ts-title">My <span>Timesheets</span></div>
-      <div class="ts-subtitle">Last 7 days — stored on device, deleted after 10 days</div>
+      <div class="ts-subtitle">Last 365 days — stored on device, deleted after 1 year</div>
     </div>
     <div class="ts-scroll" id="ts-scroll-content">
       <div class="ts-empty">
@@ -1667,10 +1705,10 @@ const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwOKy-LdKcREXyjFKmj1
 const MAX_SHIFT_MS = 12 * 60 * 60 * 1000;
 
 // ══════════════════════════════════════════
-//  CREDENTIAL MEMORY: 7 days in ms
+//  CREDENTIAL MEMORY: 1 year in ms
 // ══════════════════════════════════════════
 const CRED_KEY = 'pi_employee_creds';
-const CRED_TTL = 7 * 24 * 60 * 60 * 1000;
+const CRED_TTL = 365 * 24 * 60 * 60 * 1000;
 
 function saveCredentials(name, id) {
   // Write to BOTH localStorage (survives force-close) AND sessionStorage (faster read)
@@ -1715,7 +1753,8 @@ function showReturningBanner(creds) {
   document.getElementById('returning-name').textContent = creds.name;
   document.getElementById('returning-id').textContent = creds.id;
   const daysLeft = Math.max(1, Math.ceil((CRED_TTL - (Date.now() - creds.savedAt)) / (24*60*60*1000)));
-  document.getElementById('cred-expiry').textContent = `${daysLeft}d`;
+  const expiryText = daysLeft > 60 ? `${Math.ceil(daysLeft/30)}mo` : `${daysLeft}d`;
+  document.getElementById('cred-expiry').textContent = expiryText;
   state._savedCreds = creds;
 }
 
@@ -1846,6 +1885,8 @@ function restoreWorkingScreen() {
   updateBreakUI();
   scheduleAutoClockOut();
   startGPSTracking(); // also calls requestWakeLock()
+  updateOnClockStatus();
+  initCompass();
   showToast('👋 Welcome back! Your session was restored.');
 }
 
@@ -2241,7 +2282,7 @@ function clockIn() {
   state.reports = [];
   state.jobs = [];
 
-  // Save credentials for 7 days
+  // Save credentials for 1 year
   saveCredentials(state.employee.name, state.employee.id);
 
   const addr = document.getElementById('job-address').value.trim();
@@ -2264,6 +2305,8 @@ function clockIn() {
   startStopwatch();
   scheduleAutoClockOut();
   startGPSTracking();
+  updateOnClockStatus();
+  initCompass();
   saveState();
   clockInChime();
 
@@ -2367,6 +2410,7 @@ function performAutoClockOut() {
   state.screen = 'clockedout';
   clearState();
   switchScreen('clockedout');
+  updateOnClockStatus();
   showToast('⏰ Shift auto-ended after 12 hours');
 }
 
@@ -2753,6 +2797,7 @@ function clockOut() {
   clockOutChime();
   clearState();
   switchScreen('clockedout');
+  updateOnClockStatus();
 }
 
 // ══════════════════════════════════════════
@@ -2904,7 +2949,7 @@ function closeMenu() {
 //  Entries older than 10 days are purged on load.
 // ══════════════════════════════════════════
 const TS_STORAGE_KEY = 'pi_timesheets';
-const TS_MAX_AGE_MS  = 10 * 24 * 60 * 60 * 1000; // 10 days
+const TS_MAX_AGE_MS  = 365 * 24 * 60 * 60 * 1000; // 1 year
 
 function loadTimesheets() {
   let raw = null;
@@ -2947,8 +2992,8 @@ function renderTimesheetList() {
   const container = document.getElementById('ts-scroll-content');
   const shifts = loadTimesheets();
 
-  // Filter to last 7 days
-  const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  // Filter to last 1 year
+  const sevenDaysAgo = Date.now() - 365 * 24 * 60 * 60 * 1000;
   const recent = shifts
     .filter(s => new Date(s.clockInISO).getTime() > sevenDaysAgo)
     .sort((a, b) => new Date(b.clockInISO) - new Date(a.clockInISO));
@@ -3021,7 +3066,7 @@ function renderTimesheetList() {
 // ══════════════════════════════════════════
 function downloadTimesheet(format) {
   const shifts = loadTimesheets();
-  const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const sevenDaysAgo = Date.now() - 365 * 24 * 60 * 60 * 1000;
   const recent = shifts
     .filter(s => new Date(s.clockInISO).getTime() > sevenDaysAgo)
     .sort((a, b) => new Date(b.clockInISO) - new Date(a.clockInISO));
@@ -3111,11 +3156,11 @@ function exportPDF(shifts) {
 <div class="header">
   <div>
     <div class="logo">PI <span>Cleaning</span> Services</div>
-    <div style="font-size:11px;color:#888;margin-top:4px;">Employee Timesheet — Last 7 Days</div>
+    <div style="font-size:11px;color:#888;margin-top:4px;">Employee Timesheet — Last 12 Months</div>
   </div>
   <div class="header-right">
     Generated: ${genDate}<br>
-    Period: Last 7 days
+    Period: Last 12 months
   </div>
 </div>
 <div class="emp-block">
@@ -3129,13 +3174,13 @@ function exportPDF(shifts) {
   <tbody>
     ${tableRows}
     <tr class="total-row">
-      <td>TOTAL (7 days)</td>
+      <td>TOTAL (12 months)</td>
       <td>${secToHMS(totalSecs)}</td>
       <td colspan="3">${shifts.length} shift${shifts.length !== 1 ? 's' : ''}</td>
     </tr>
   </tbody>
 </table>
-<div class="footer">PI Cleaning Services · This timesheet is stored on your device and deleted automatically after 10 days · Generated ${genDate}</div>
+<div class="footer">PI Cleaning Services · This timesheet is stored on your device and deleted automatically after 1 year · Generated ${genDate}</div>
 </body></html>`;
 
   const win = window.open('', '_blank');
@@ -3184,7 +3229,7 @@ function shareTimesheetWhatsApp(app) {
 
   lines.push('\n─────────────────────────');
   lines.push(`*Total Hours (${recent.length} shifts): ${secToHMS(totalSecs)}*`);
-  lines.push('\n_Sent via PI Cleaning Services App v1.6_');
+  lines.push('\n_Sent via PI Cleaning Services App v1.7_');
 
   const text = encodeURIComponent(lines.join('\n'));
 
@@ -3291,12 +3336,27 @@ const APP_UPDATES = [
     id: 'update-006',
     version: 'v1.6',
     title: 'Share Timesheets via WhatsApp 📤',
+    isNew: false,
+    features: [
+      { icon: '📤', text: 'Share timesheet via WhatsApp — tap the WhatsApp button in My Timesheets to send your PDF summary directly' },
+      { icon: '💼', text: 'Share via WhatsApp Business — a separate button opens WA Business app for professional sharing' },
+      { icon: '📄', text: 'Timesheet is formatted as a clean text summary ready to send in one tap' },
+      { icon: '🏷️', text: 'App version v1.6 now displayed at the bottom of the main clock-in screen' },
+    ]
+  },
+  {
+    id: 'update-007',
+    version: 'v1.7',
+    title: 'Compass, Personal Stats & 1-Year Storage 🧭📊',
     isNew: true,
     features: [
-      { icon: '📤', text: 'Share timesheet via WhatsApp — tap the WhatsApp button in My Timesheets to send your PDF summary directly', badge: true },
-      { icon: '💼', text: 'Share via WhatsApp Business — a separate button opens WA Business app for professional sharing', badge: true },
-      { icon: '📄', text: 'Timesheet is formatted as a clean text summary ready to send in one tap', badge: true },
-      { icon: '🏷️', text: 'App version v1.6 now displayed at the bottom of the main clock-in screen', badge: true },
+      { icon: '🧭', text: 'Live compass in the top-left corner — smoothly animates as you change direction, visible before and during your shift', badge: true },
+      { icon: '📊', text: 'Personal Stats dashboard — track how many jobs you\'ve completed per day over the last 7 days, shown as a ranked bar chart', badge: true },
+      { icon: '🟢', text: 'On the Clock status moved — now sits above Shift Details for a cleaner layout, and always shows in the hamburger menu during a shift', badge: true },
+      { icon: '💾', text: 'Credentials now remembered for 1 year (up from 7 days) — sign in once and stay signed in', badge: true },
+      { icon: '📋', text: 'Timesheets stored for 1 year on device — full history saved, auto-deleted after 365 days', badge: true },
+      { icon: '🗑️', text: 'Delete All Timesheets button always available in My Timesheets regardless of retention period', badge: true },
+      { icon: '🔧', text: 'App Guide layout fixed — content now centred and formatted consistently with the Privacy Policy screen', badge: true },
     ]
   }
 ];
@@ -3330,6 +3390,13 @@ const WN_MAX_CLICKS     = 3;
     // v1.6 migration: reset so existing employees see the new update
     if (seen.includes('update-005') && !seen.includes('update-006')) {
       seen = seen.filter(id => id !== 'update-006');
+      localStorage.setItem(WN_SEEN_KEY, JSON.stringify(seen));
+      localStorage.removeItem(WN_CLICK_KEY);
+      localStorage.removeItem(WN_HIDDEN_KEY);
+    }
+    // v1.7 migration: reset so existing employees see the new update
+    if (seen.includes('update-006') && !seen.includes('update-007')) {
+      seen = seen.filter(id => id !== 'update-007');
       localStorage.setItem(WN_SEEN_KEY, JSON.stringify(seen));
       localStorage.removeItem(WN_CLICK_KEY);
       localStorage.removeItem(WN_HIDDEN_KEY);
@@ -3721,6 +3788,195 @@ document.addEventListener('visibilitychange', () => {
     showForceCloseReminder();
   }
 });
+
+// ══════════════════════════════════════════
+//  PERSONAL STATS DASHBOARD
+// ══════════════════════════════════════════
+function openPersonalStats() {
+  renderPersonalStats();
+  document.getElementById('modal-personal-stats').classList.add('open');
+}
+
+function closePersonalStats() {
+  document.getElementById('modal-personal-stats').classList.remove('open');
+}
+
+function renderPersonalStats() {
+  const container = document.getElementById('stats-scroll-content');
+  const shifts = loadTimesheets();
+
+  // Build job counts per day for last 7 days
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    d.setHours(0,0,0,0);
+    days.push({
+      label: d.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' }),
+      shortLabel: d.toLocaleDateString('en-AU', { weekday: 'short' }),
+      date: d,
+      jobs: 0,
+      hours: 0
+    });
+  }
+
+  shifts.forEach(s => {
+    const sd = new Date(s.clockInISO);
+    sd.setHours(0,0,0,0);
+    const day = days.find(d => d.date.getTime() === sd.getTime());
+    if (day) {
+      day.jobs += (s.jobs || []).length;
+      day.hours += (s.totalWorkedSecs || 0) / 3600;
+    }
+  });
+
+  const maxJobs = Math.max(...days.map(d => d.jobs), 1);
+  const totalJobs = days.reduce((s, d) => s + d.jobs, 0);
+  const totalShifts = shifts.filter(s => {
+    const sd = new Date(s.clockInISO);
+    return Date.now() - sd.getTime() < 7 * 24 * 60 * 60 * 1000;
+  }).length;
+
+  // Sort for ranking display
+  const ranked = [...days].sort((a, b) => b.jobs - a.jobs);
+  const topDay = ranked[0];
+
+  let html = '';
+
+  // Summary cards
+  html += `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
+    <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:12px;padding:12px;text-align:center;">
+      <div style="font-size:24px;font-weight:700;color:var(--gold);font-family:'Playfair Display',serif;">${totalJobs}</div>
+      <div style="font-size:10px;color:var(--text-muted);margin-top:2px;letter-spacing:0.5px;">Total Jobs</div>
+    </div>
+    <div style="background:rgba(29,158,117,0.08);border:1px solid rgba(29,158,117,0.2);border-radius:12px;padding:12px;text-align:center;">
+      <div style="font-size:24px;font-weight:700;color:var(--success);font-family:'Playfair Display',serif;">${totalShifts}</div>
+      <div style="font-size:10px;color:var(--text-muted);margin-top:2px;letter-spacing:0.5px;">Shifts</div>
+    </div>
+    <div style="background:rgba(129,216,208,0.07);border:1px solid rgba(129,216,208,0.2);border-radius:12px;padding:12px;text-align:center;">
+      <div style="font-size:24px;font-weight:700;color:#81d8d0;font-family:'Playfair Display',serif;">${topDay.jobs || '—'}</div>
+      <div style="font-size:10px;color:var(--text-muted);margin-top:2px;letter-spacing:0.5px;">Best Day</div>
+    </div>
+  </div>`;
+
+  // Bar chart
+  html += `<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(201,168,76,0.15);border-radius:14px;padding:16px;margin-bottom:16px;">
+    <div style="font-size:11px;font-weight:700;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;">📊 Jobs Per Day — Last 7 Days</div>
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;height:100px;gap:6px;margin-bottom:8px;">`;
+
+  days.forEach(d => {
+    const pct = maxJobs > 0 ? (d.jobs / maxJobs) * 100 : 0;
+    const isTop = d.jobs === topDay.jobs && d.jobs > 0;
+    const barColor = isTop ? 'linear-gradient(180deg,var(--gold-light),var(--gold))' : 'rgba(201,168,76,0.3)';
+    const h = Math.max(pct, d.jobs > 0 ? 8 : 2);
+    html += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+      <div style="font-size:11px;font-weight:700;color:${isTop ? 'var(--gold)' : 'var(--text-muted)'};">${d.jobs || ''}</div>
+      <div style="width:100%;height:${h}%;min-height:${d.jobs>0?8:2}px;background:${barColor};border-radius:4px 4px 0 0;${isTop?'box-shadow:0 0 10px rgba(201,168,76,0.35);':''}" title="${d.jobs} job${d.jobs!==1?'s':''}"></div>
+    </div>`;
+  });
+
+  html += `</div>
+    <div style="display:flex;justify-content:space-between;gap:6px;">`;
+  days.forEach(d => {
+    const isTop = d.jobs === topDay.jobs && d.jobs > 0;
+    html += `<div style="flex:1;text-align:center;font-size:9px;color:${isTop?'var(--gold)':'var(--text-muted)'};font-weight:${isTop?'700':'400'};">${d.shortLabel}</div>`;
+  });
+  html += `</div></div>`;
+
+  // Ranking list
+  html += `<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(201,168,76,0.15);border-radius:14px;padding:16px;">
+    <div style="font-size:11px;font-weight:700;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;">🏆 Daily Ranking</div>`;
+
+  const medals = ['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣'];
+  ranked.forEach((d, i) => {
+    html += `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;${i<ranked.length-1?'border-bottom:1px solid rgba(255,255,255,0.05);':''}">
+      <span style="font-size:16px;width:24px;text-align:center;">${medals[i]}</span>
+      <span style="flex:1;font-size:12px;color:${d.jobs>0?'var(--white)':'var(--text-muted)'};">${d.label}</span>
+      <span style="font-size:13px;font-weight:700;color:${d.jobs>0?'var(--gold)':'var(--text-muted)'};">${d.jobs} job${d.jobs!==1?'s':''}</span>
+    </div>`;
+  });
+  html += `</div>`;
+
+  if (totalJobs === 0) {
+    html = `<div style="text-align:center;padding:40px 20px;color:var(--text-muted);">
+      <div style="font-size:36px;margin-bottom:12px;">📊</div>
+      <div style="font-size:14px;margin-bottom:6px;">No stats yet</div>
+      <div style="font-size:12px;">Complete your first shift and jobs will appear here.</div>
+    </div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+// ══════════════════════════════════════════
+//  COMPASS — device orientation
+// ══════════════════════════════════════════
+let compassHeading = 0;
+let compassTarget  = 0;
+
+function initCompass() {
+  function handleOrientation(e) {
+    let heading = null;
+    if (e.webkitCompassHeading !== undefined) {
+      heading = e.webkitCompassHeading; // iOS
+    } else if (e.alpha !== null) {
+      heading = (360 - e.alpha) % 360;  // Android
+    }
+    if (heading === null) return;
+    compassTarget = heading;
+    animateCompass();
+  }
+
+  function animateCompass() {
+    // Smooth interpolation
+    let diff = compassTarget - compassHeading;
+    if (diff > 180) diff -= 360;
+    if (diff < -180) diff += 360;
+    compassHeading += diff * 0.15;
+    compassHeading = ((compassHeading % 360) + 360) % 360;
+
+    const svg = document.getElementById('compass-svg');
+    const label = document.getElementById('compass-dir-label');
+    if (svg) svg.style.transform = `rotate(${-compassHeading}deg)`;
+    if (label) {
+      const dirs = ['N','NE','E','SE','S','SW','W','NW','N'];
+      const idx = Math.round(compassHeading / 45) % 8;
+      label.textContent = dirs[idx];
+    }
+  }
+
+  if (window.DeviceOrientationEvent) {
+    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+      // iOS 13+ requires permission
+      DeviceOrientationEvent.requestPermission()
+        .then(state => { if (state === 'granted') window.addEventListener('deviceorientation', handleOrientation, true); })
+        .catch(() => {});
+    } else {
+      window.addEventListener('deviceorientation', handleOrientation, true);
+    }
+  }
+}
+
+// ══════════════════════════════════════════
+//  UPDATE ON-CLOCK STATUS
+// ══════════════════════════════════════════
+function updateOnClockStatus() {
+  const bar = document.getElementById('on-the-clock-bar');
+  const menuItem = document.getElementById('on-clock-menu-item');
+  const since = document.getElementById('on-clock-since');
+  const menuSince = document.getElementById('menu-on-clock-since');
+
+  if (state.screen === 'working' && state.clockInTime) {
+    const sinceStr = fmt12(state.clockInTime);
+    if (bar) bar.style.display = 'flex';
+    if (since) since.textContent = `Since ${sinceStr}`;
+    if (menuItem) menuItem.style.display = 'flex';
+    if (menuSince) menuSince.textContent = `Since ${sinceStr}`;
+  } else {
+    if (bar) bar.style.display = 'none';
+    if (menuItem) menuItem.style.display = 'none';
+  }
+}
 
 // ══════════════════════════════════════════
 //  START
