@@ -1167,7 +1167,7 @@
       Clock In to Start Shift
     </button>
     <div style="height:18px;"></div>
-    <div style="text-align:center;font-size:11px;color:rgba(138,155,181,0.45);letter-spacing:1px;padding-bottom:24px;">PI Cleaning Services · v1.7</div>
+    <div style="text-align:center;font-size:11px;color:rgba(138,155,181,0.45);letter-spacing:1px;padding-bottom:24px;">PI Cleaning Services · v1.7.1</div>
   </div>
 </div>
 
@@ -1433,7 +1433,7 @@
 
       <div>
         <div style="color:var(--white);font-weight:600;margin-bottom:4px;">⏹ When Location Tracking Stops</div>
-        Your location is only tracked during active shifts. Tracking stops the moment you tap <strong style="color:var(--white);">Clock Out</strong>, or automatically after a 12-hour maximum shift. No data is collected outside of your shift hours.
+        Your location is only tracked during active shifts. Tracking stops the moment you tap <strong style="color:var(--white);">Clock Out</strong>, or automatically after an 18-hour maximum shift. No data is collected outside of your shift hours.
       </div>
 
       <div style="background:rgba(226,75,74,0.08);border:1px solid rgba(226,75,74,0.2);border-radius:10px;padding:12px 14px;font-size:12px;">
@@ -1465,7 +1465,7 @@
 
       <div>
         <div style="color:var(--white);font-weight:600;margin-bottom:4px;">⏹ When Tracking Stops</div>
-        Location tracking stops immediately when you clock out of your shift, or when your shift is automatically ended after the maximum shift duration. No location data is collected outside of active shift hours.
+        Location tracking stops immediately when you clock out of your shift, or when your shift is automatically ended after the maximum shift duration of 18 hours. No location data is collected outside of active shift hours.
       </div>
 
       <div>
@@ -1545,7 +1545,7 @@
       <span>App Guide</span>
     </div>
   </div>
-  <div class="menu-footer">PI Cleaning Services © 2025<br><span style="font-size:10px;color:rgba(138,155,181,0.5);letter-spacing:0.5px;">Current version v1.7</span></div>
+  <div class="menu-footer">PI Cleaning Services © 2025<br><span style="font-size:10px;color:rgba(138,155,181,0.5);letter-spacing:0.5px;">Current version v1.7.1</span></div>
 </div>
 
 <!-- PERSONAL STATS MODAL -->
@@ -1700,9 +1700,9 @@
 const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwOKy-LdKcREXyjFKmj15EDD3NKBacvpvpkX3n_jO5wGf6rw2kfp_FdzYKloOAlPAw8oA/exec';
 
 // ══════════════════════════════════════════
-//  MAX SHIFT DURATION: 12 hours in ms
+//  MAX SHIFT DURATION: 18 hours in ms
 // ══════════════════════════════════════════
-const MAX_SHIFT_MS = 12 * 60 * 60 * 1000;
+const MAX_SHIFT_MS = 18 * 60 * 60 * 1000;
 
 // ══════════════════════════════════════════
 //  CREDENTIAL MEMORY: 1 year in ms
@@ -2411,7 +2411,7 @@ function performAutoClockOut() {
   clearState();
   switchScreen('clockedout');
   updateOnClockStatus();
-  showToast('⏰ Shift auto-ended after 12 hours');
+  showToast('⏰ Shift auto-ended after 18 hours');
 }
 
 // ══════════════════════════════════════════
@@ -3229,7 +3229,7 @@ function shareTimesheetWhatsApp(app) {
 
   lines.push('\n─────────────────────────');
   lines.push(`*Total Hours (${recent.length} shifts): ${secToHMS(totalSecs)}*`);
-  lines.push('\n_Sent via PI Cleaning Services App v1.7_');
+  lines.push('\n_Sent via PI Cleaning Services App v1.7.1_');
 
   const text = encodeURIComponent(lines.join('\n'));
 
@@ -3348,15 +3348,25 @@ const APP_UPDATES = [
     id: 'update-007',
     version: 'v1.7',
     title: 'Compass, Personal Stats & 1-Year Storage 🧭📊',
+    isNew: false,
+    features: [
+      { icon: '🧭', text: 'Live compass in the top-left corner — smoothly animates as you change direction, visible before and during your shift' },
+      { icon: '📊', text: 'Personal Stats dashboard — track how many jobs you\'ve completed per day over the last 7 days, shown as a ranked bar chart' },
+      { icon: '🟢', text: 'On the Clock status moved — now sits above Shift Details for a cleaner layout, and always shows in the hamburger menu during a shift' },
+      { icon: '💾', text: 'Credentials now remembered for 1 year (up from 7 days) — sign in once and stay signed in' },
+      { icon: '📋', text: 'Timesheets stored for 1 year on device — full history saved, auto-deleted after 365 days' },
+      { icon: '🗑️', text: 'Delete All Timesheets button always available in My Timesheets regardless of retention period' },
+      { icon: '🔧', text: 'App Guide layout fixed — content now centred and formatted consistently with the Privacy Policy screen' },
+    ]
+  },
+  {
+    id: 'update-008',
+    version: 'v1.7.1',
+    title: 'Extended Auto Clock-Out — 18 Hours ⏱️',
     isNew: true,
     features: [
-      { icon: '🧭', text: 'Live compass in the top-left corner — smoothly animates as you change direction, visible before and during your shift', badge: true },
-      { icon: '📊', text: 'Personal Stats dashboard — track how many jobs you\'ve completed per day over the last 7 days, shown as a ranked bar chart', badge: true },
-      { icon: '🟢', text: 'On the Clock status moved — now sits above Shift Details for a cleaner layout, and always shows in the hamburger menu during a shift', badge: true },
-      { icon: '💾', text: 'Credentials now remembered for 1 year (up from 7 days) — sign in once and stay signed in', badge: true },
-      { icon: '📋', text: 'Timesheets stored for 1 year on device — full history saved, auto-deleted after 365 days', badge: true },
-      { icon: '🗑️', text: 'Delete All Timesheets button always available in My Timesheets regardless of retention period', badge: true },
-      { icon: '🔧', text: 'App Guide layout fixed — content now centred and formatted consistently with the Privacy Policy screen', badge: true },
+      { icon: '⏱️', text: 'Auto clock-out extended from 12 hours to 18 hours — giving you more flexibility for longer shifts without being cut off early', badge: true },
+      { icon: '⚠️', text: 'Warning banner still appears 30 minutes before the 18-hour limit so you\'re never caught off guard', badge: true },
     ]
   }
 ];
@@ -3397,6 +3407,13 @@ const WN_MAX_CLICKS     = 3;
     // v1.7 migration: reset so existing employees see the new update
     if (seen.includes('update-006') && !seen.includes('update-007')) {
       seen = seen.filter(id => id !== 'update-007');
+      localStorage.setItem(WN_SEEN_KEY, JSON.stringify(seen));
+      localStorage.removeItem(WN_CLICK_KEY);
+      localStorage.removeItem(WN_HIDDEN_KEY);
+    }
+    // v1.7.1 migration: reset so existing employees see the new update
+    if (seen.includes('update-007') && !seen.includes('update-008')) {
+      seen = seen.filter(id => id !== 'update-008');
       localStorage.setItem(WN_SEEN_KEY, JSON.stringify(seen));
       localStorage.removeItem(WN_CLICK_KEY);
       localStorage.removeItem(WN_HIDDEN_KEY);
