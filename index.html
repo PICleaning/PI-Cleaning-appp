@@ -1783,11 +1783,83 @@ function saveState() {
     try { localStorage.setItem(STORAGE_KEY, payload); } catch(e) {}
     try { sessionStorage.setItem(STORAGE_KEY, payload); } catch(e) {}
   } catch(e) {}
+  publishToAdminDashboard();
 }
 
 function clearState() {
   try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
   try { sessionStorage.removeItem(STORAGE_KEY); } catch(e) {}
+  // Clear from admin dashboard too
+  removeFromAdminDashboard();
+}
+
+// ══════════════════════════════════════════
+//  ADMIN DASHBOARD SYNC
+//  Writes live employee data to localStorage key
+//  'pi_active_employees' so admin.html can read it.
+//  Each employee is keyed by their employee ID.
+// ══════════════════════════════════════════
+const ADMIN_KEY = 'pi_active_employees';
+
+function publishToAdminDashboard() {
+  if (!state.employee || !state.employee.name || state.screen !== 'working') return;
+  try {
+    let employees = {};
+    const raw = localStorage.getItem(ADMIN_KEY);
+    if (raw) { try { employees = JSON.parse(raw); } catch(e) {} }
+    const empId = state.employee.id || state.employee.name;
+    const currentJob = (state.jobs || []).find(j => j.active) || (state.jobs || [])[state.jobs.length - 1] || null;
+    employees[empId] = {
+      id: empId,
+      name: state.employee.name,
+      shift: state.employee.shift,
+      clockInTime: state.clockInTime ? (state.clockInTime instanceof Date ? state.clockInTime.toISOString() : state.clockInTime) : null,
+      status: state.onBreak ? 'On Break' : 'Working',
+      lat: state.liveGps ? state.liveGps.lat : (state.gps ? state.gps.lat : null),
+      lng: state.liveGps ? state.liveGps.lng : (state.gps ? state.gps.lng : null),
+      accuracy: state.liveGps ? state.liveGps.accuracy : null,
+      lastLocationUpdate: state.liveGps ? state.liveGps.ts : new Date().toISOString(),
+      currentJob: currentJob ? currentJob.address : null,
+      currentJobGps: currentJob ? currentJob.gps : null,
+      jobCount: (state.jobs || []).length,
+      jobs: (state.jobs || []).map(j => ({
+        address: j.address,
+        time: j.time instanceof Date ? j.time.toISOString() : j.time,
+        active: j.active,
+        gps: j.gps
+      })),
+      totalBreakSecs: state.totalBreakSecs || 0,
+      breakCount: (state.breaks || []).length,
+      updatedAt: new Date().toISOString()
+    };
+    localStorage.setItem(ADMIN_KEY, JSON.stringify(employees));
+  } catch(e) {}
+}
+
+function removeFromAdminDashboard() {
+  try {
+    const raw = localStorage.getItem(ADMIN_KEY);
+    if (!raw) return;
+    let employees = JSON.parse(raw);
+    const empId = state.employee && state.employee.id ? state.employee.id : (state.employee ? state.employee.name : null);
+    if (empId && employees[empId]) {
+      // Mark as clocked out rather than deleting — admin can see recent history
+      employees[empId].status = 'Clocked Out';
+      employees[empId].clockOutTime = new Date().toISOString();
+      employees[empId].updatedAt = new Date().toISOString();
+      localStorage.setItem(ADMIN_KEY, JSON.stringify(employees));
+      // Remove after 60 seconds so admin sees the final state briefly
+      setTimeout(() => {
+        try {
+          const r2 = localStorage.getItem(ADMIN_KEY);
+          if (!r2) return;
+          let e2 = JSON.parse(r2);
+          delete e2[empId];
+          localStorage.setItem(ADMIN_KEY, JSON.stringify(e2));
+        } catch(e) {}
+      }, 60000);
+    }
+  } catch(e) {}
 }
 
 // ══════════════════════════════════════════
@@ -2123,6 +2195,7 @@ function _attachGPSWatcher() {
         lastStreetUpdate = now;
         updateGPSStreetDisplay(lat, lng);
       }
+      publishToAdminDashboard();
     },
     err => {
       showGPSOrbit(false);
