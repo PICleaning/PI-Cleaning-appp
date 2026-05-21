@@ -1175,25 +1175,6 @@
 <div id="working" class="screen">
   <div class="app-header">
     <div style="display:flex;align-items:center;gap:10px;">
-      <!-- Compass in top-left -->
-      <div id="compass-widget" style="display:flex;flex-direction:column;align-items:center;gap:2px;">
-        <div style="position:relative;width:44px;height:44px;">
-          <svg id="compass-svg" viewBox="0 0 44 44" width="44" height="44" style="transition:transform 0.5s cubic-bezier(.4,0,.2,1);display:block;">
-            <circle cx="22" cy="22" r="20" fill="rgba(201,168,76,0.08)" stroke="rgba(201,168,76,0.35)" stroke-width="1.5"/>
-            <circle cx="22" cy="22" r="1.5" fill="var(--gold)"/>
-            <!-- N needle (gold) -->
-            <polygon points="22,6 24.5,22 22,19 19.5,22" fill="var(--gold)"/>
-            <!-- S needle (muted) -->
-            <polygon points="22,38 24.5,22 22,25 19.5,22" fill="rgba(138,155,181,0.5)"/>
-            <!-- Cardinal labels -->
-            <text x="22" y="4.5" text-anchor="middle" font-size="5" fill="var(--gold)" font-family="DM Sans,sans-serif" font-weight="700">N</text>
-            <text x="22" y="43" text-anchor="middle" font-size="4.5" fill="rgba(138,155,181,0.5)" font-family="DM Sans,sans-serif">S</text>
-            <text x="41" y="23" text-anchor="middle" font-size="4.5" fill="rgba(138,155,181,0.5)" font-family="DM Sans,sans-serif">E</text>
-            <text x="3" y="23" text-anchor="middle" font-size="4.5" fill="rgba(138,155,181,0.5)" font-family="DM Sans,sans-serif">W</text>
-          </svg>
-        </div>
-        <div id="compass-dir-label" style="font-size:9px;color:var(--gold);font-weight:700;letter-spacing:1px;">—</div>
-      </div>
       <div>
         <div class="header-sub" id="work-employee-name">—</div>
       </div>
@@ -1958,7 +1939,6 @@ function restoreWorkingScreen() {
   scheduleAutoClockOut();
   startGPSTracking(); // also calls requestWakeLock()
   updateOnClockStatus();
-  initCompass();
   showToast('👋 Welcome back! Your session was restored.');
 }
 
@@ -2339,6 +2319,67 @@ function clockOutChime() {
 }
 
 // ══════════════════════════════════════════
+//  BREAK CHIMES
+//  Tesla Autopilot-style — soft ambient crystal tones.
+//  Uses triangle wave + gentle shimmer overtone so it
+//  sits in a completely different sonic space from the
+//  sine-wave cabin chimes used for clock-in / clock-out.
+//
+//  breakStartChime() → three rising crystal notes (break on)
+//  breakEndChime()   → three falling crystal notes (break off)
+// ══════════════════════════════════════════
+function playBreakTone(freq, startTime, duration, ctx, gainVal = 0.18) {
+  // Triangle oscillator — softer, less metallic than sine
+  const osc  = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(freq, startTime);
+  // Very gentle attack, quick fade — airy, not bell-like
+  gain.gain.setValueAtTime(0, startTime);
+  gain.gain.linearRampToValueAtTime(gainVal, startTime + 0.025);
+  gain.gain.setValueAtTime(gainVal * 0.85, startTime + 0.07);
+  gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+  osc.start(startTime);
+  osc.stop(startTime + duration + 0.05);
+  // Subtle shimmer — one quiet upper partial
+  const osc2  = ctx.createOscillator();
+  const gain2 = ctx.createGain();
+  osc2.connect(gain2);
+  gain2.connect(ctx.destination);
+  osc2.type = 'sine';
+  osc2.frequency.setValueAtTime(freq * 2.756, startTime); // inharmonic shimmer
+  gain2.gain.setValueAtTime(0, startTime);
+  gain2.gain.linearRampToValueAtTime(gainVal * 0.055, startTime + 0.03);
+  gain2.gain.exponentialRampToValueAtTime(0.001, startTime + duration * 0.45);
+  osc2.start(startTime);
+  osc2.stop(startTime + duration * 0.5);
+}
+
+function breakStartChime() {
+  // Three rising notes — C5 → E5 → G5 (calm, open chord)
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  if (ctx.state === 'suspended') ctx.resume();
+  const now = ctx.currentTime + 0.04;
+  playBreakTone(523.3, now,        1.1, ctx, 0.16); // C5
+  playBreakTone(659.3, now + 0.18, 1.0, ctx, 0.14); // E5
+  playBreakTone(784.0, now + 0.36, 1.3, ctx, 0.13); // G5
+}
+
+function breakEndChime() {
+  // Three falling notes — G5 → E5 → C5 (mirror of start, signals return)
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  if (ctx.state === 'suspended') ctx.resume();
+  const now = ctx.currentTime + 0.04;
+  playBreakTone(784.0, now,        1.1, ctx, 0.15); // G5
+  playBreakTone(659.3, now + 0.18, 1.0, ctx, 0.14); // E5
+  playBreakTone(523.3, now + 0.36, 1.4, ctx, 0.13); // C5
+}
+
+// ══════════════════════════════════════════
 //  CLOCK IN
 // ══════════════════════════════════════════
 function clockIn() {
@@ -2379,7 +2420,6 @@ function clockIn() {
   scheduleAutoClockOut();
   startGPSTracking();
   updateOnClockStatus();
-  initCompass();
   saveState();
   clockInChime();
 
@@ -2569,6 +2609,7 @@ function toggleBreak() {
       date: dateStr(new Date())
     });
     showToast('☕ Break started — enjoy!');
+    breakStartChime();
     showGPSOrbit(false);
     // Stop the watcher during break to save battery
     if (gpsWatchId !== null) { navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId = null; }
@@ -2603,6 +2644,7 @@ function toggleBreak() {
       date: dateStr(breakEnd)
     });
     showToast(`▶ Resumed — break was ${secToMS(breakSecs)}`);
+    breakEndChime();
     showGPSOrbit(true);
     _attachGPSWatcher(); // Resume GPS watcher after break
     // Auto-send location back to Sheets on resume — no employee prompt needed
@@ -3420,10 +3462,9 @@ const APP_UPDATES = [
   {
     id: 'update-007',
     version: 'v1.7',
-    title: 'Compass, Personal Stats & 1-Year Storage 🧭📊',
+    title: 'Personal Stats & 1-Year Storage 📊',
     isNew: false,
     features: [
-      { icon: '🧭', text: 'Live compass in the top-left corner — smoothly animates as you change direction, visible before and during your shift' },
       { icon: '📊', text: 'Personal Stats dashboard — track how many jobs you\'ve completed per day over the last 7 days, shown as a ranked bar chart' },
       { icon: '🟢', text: 'On the Clock status moved — now sits above Shift Details for a cleaner layout, and always shows in the hamburger menu during a shift' },
       { icon: '💾', text: 'Credentials now remembered for 1 year (up from 7 days) — sign in once and stay signed in' },
@@ -3996,55 +4037,6 @@ function renderPersonalStats() {
   }
 
   container.innerHTML = html;
-}
-
-// ══════════════════════════════════════════
-//  COMPASS — device orientation
-// ══════════════════════════════════════════
-let compassHeading = 0;
-let compassTarget  = 0;
-
-function initCompass() {
-  function handleOrientation(e) {
-    let heading = null;
-    if (e.webkitCompassHeading !== undefined) {
-      heading = e.webkitCompassHeading; // iOS
-    } else if (e.alpha !== null) {
-      heading = (360 - e.alpha) % 360;  // Android
-    }
-    if (heading === null) return;
-    compassTarget = heading;
-    animateCompass();
-  }
-
-  function animateCompass() {
-    // Smooth interpolation
-    let diff = compassTarget - compassHeading;
-    if (diff > 180) diff -= 360;
-    if (diff < -180) diff += 360;
-    compassHeading += diff * 0.15;
-    compassHeading = ((compassHeading % 360) + 360) % 360;
-
-    const svg = document.getElementById('compass-svg');
-    const label = document.getElementById('compass-dir-label');
-    if (svg) svg.style.transform = `rotate(${-compassHeading}deg)`;
-    if (label) {
-      const dirs = ['N','NE','E','SE','S','SW','W','NW','N'];
-      const idx = Math.round(compassHeading / 45) % 8;
-      label.textContent = dirs[idx];
-    }
-  }
-
-  if (window.DeviceOrientationEvent) {
-    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-      // iOS 13+ requires permission
-      DeviceOrientationEvent.requestPermission()
-        .then(state => { if (state === 'granted') window.addEventListener('deviceorientation', handleOrientation, true); })
-        .catch(() => {});
-    } else {
-      window.addEventListener('deviceorientation', handleOrientation, true);
-    }
-  }
 }
 
 // ══════════════════════════════════════════
