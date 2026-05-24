@@ -108,6 +108,59 @@
   }
   @keyframes loadBar { 0%{width:0%} 100%{width:100%} }
 
+
+  /* ASSIGNED JOBS FROM SHEETS */
+  .assigned-jobs-card {
+    background: rgba(29,158,117,0.06);
+    border: 1px solid rgba(29,158,117,0.3);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .aj-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .aj-title {
+    font-size: 11px; font-weight: 700; color: var(--success);
+    letter-spacing: 2px; text-transform: uppercase;
+  }
+  .aj-badge {
+    background: var(--success); color: var(--navy);
+    border-radius: 10px; padding: 2px 8px;
+    font-size: 10px; font-weight: 700;
+  }
+  .aj-refresh-btn {
+    background: none; border: none; color: var(--text-muted);
+    font-size: 14px; cursor: pointer; padding: 2px 4px;
+    transition: transform 0.4s;
+  }
+  .aj-refresh-btn.spinning { animation: spin360 0.4s linear; }
+  @keyframes spin360 { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+  .aj-item {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(29,158,117,0.2);
+    border-radius: 10px;
+    padding: 11px 13px;
+    margin-bottom: 8px;
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .aj-item:last-child { margin-bottom: 0; }
+  .aj-num {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: rgba(29,158,117,0.2);
+    border: 1px solid rgba(29,158,117,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: var(--success);
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .aj-info { flex: 1; }
+  .aj-addr { font-size: 13px; color: var(--white); font-weight: 500; line-height: 1.35; }
+  .aj-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .aj-meta span { display: flex; align-items: center; gap: 3px; }
+  .aj-empty { text-align: center; color: var(--text-muted); font-size: 12px; padding: 10px 0; }
+  .aj-last-sync { font-size: 10px; color: var(--text-muted); text-align: right; margin-top: 8px; }
+
   /* HEADER */
   .app-header {
     background: var(--navy-mid);
@@ -1254,6 +1307,20 @@
       <div class="info-row"><span class="info-label">Total Break</span><span class="info-val" id="wi-break">—</span></div>
     </div>
 
+
+    <!-- ═══ ASSIGNED JOBS FROM GOOGLE SHEETS ═══ -->
+    <div class="assigned-jobs-card" id="assigned-jobs-card" style="display:none;">
+      <div class="aj-header">
+        <span class="aj-title">📋 Today's Assigned Jobs</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="aj-badge" id="aj-count">0</span>
+          <button class="aj-refresh-btn" id="aj-refresh-btn" onclick="fetchAssignedJobs(true)" title="Refresh">↻</button>
+        </div>
+      </div>
+      <div id="aj-list"></div>
+      <div class="aj-last-sync" id="aj-last-sync"></div>
+    </div>
+
     <!-- Jobs list -->
     <div class="jobs-list" id="jobs-list"></div>
 
@@ -1507,6 +1574,11 @@
       <span>What's New</span>
       <span class="whats-new-dot" id="whats-new-dot" style="display:none;"></span>
     </div>
+    <div class="menu-item" id="jobs-day-menu-item" onclick="closeMenu(); openJobsForDay();">
+      <span class="menu-item-icon">📋</span>
+      <span>Jobs for the Day</span>
+      <span class="menu-item-badge" id="menu-jobs-badge" style="display:none;">0</span>
+    </div>
     <div class="menu-item" onclick="closeMenu(); openTimesheetModal();">
       <span class="menu-item-icon">📄</span>
       <span>My Timesheets</span>
@@ -1525,6 +1597,66 @@
     </div>
   </div>
   <div class="menu-footer">PI Cleaning Services © 2025<br><span style="font-size:10px;color:rgba(138,155,181,0.5);letter-spacing:0.5px;">Current version v1.7.1</span></div>
+</div>
+
+<!-- JOBS FOR THE DAY MODAL -->
+<div class="wn-modal-overlay" id="modal-jobs-day">
+  <div class="wn-modal-box" style="max-height:90vh;display:flex;flex-direction:column;">
+    <div class="wn-head" style="flex-shrink:0;">
+      <div class="wn-handle"></div>
+      <div class="wn-title-row">
+        <div class="wn-title">Jobs for the <span style="color:var(--gold);">Next 7 Days</span></div>
+        <button class="wn-close-btn" onclick="closeJobsForDay()">✕</button>
+      </div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:0 20px 32px;">
+
+      <!-- Name entry -->
+      <div id="jfd-name-section" style="margin-bottom:16px;">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;letter-spacing:0.5px;">YOUR NAME</div>
+        <div style="display:flex;gap:8px;">
+          <input id="jfd-name-input"
+            type="text"
+            placeholder="e.g. Sarah Johnson"
+            autocomplete="name"
+            style="flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(201,168,76,0.3);border-radius:10px;padding:11px 14px;font-size:14px;color:var(--white);font-family:'DM Sans',sans-serif;outline:none;"
+            oninput="onJfdNameInput()"
+            onkeydown="if(event.key==='Enter')fetchJobsForDayModal()"
+          >
+          <button onclick="fetchJobsForDayModal()"
+            id="jfd-go-btn"
+            style="background:linear-gradient(135deg,var(--gold),#a8892e);border:none;border-radius:10px;padding:11px 16px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;color:var(--navy);cursor:pointer;white-space:nowrap;">
+            See Jobs
+          </button>
+        </div>
+        <div id="jfd-name-hint" style="font-size:11px;color:var(--text-muted);margin-top:6px;"></div>
+      </div>
+
+      <!-- sync row -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div id="jfd-sync" style="font-size:10px;color:var(--text-muted);"></div>
+        <button onclick="fetchJobsForDayModal()" id="jfd-refresh-btn"
+          style="display:none;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);border-radius:8px;padding:5px 10px;color:var(--gold);font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">↻ Refresh</button>
+      </div>
+
+      <!-- Loading -->
+      <div id="jfd-loading" style="display:none;text-align:center;padding:32px 16px;">
+        <div style="font-size:28px;margin-bottom:10px;animation:spin360 1s linear infinite;display:inline-block;">↻</div>
+        <div style="font-size:12px;color:var(--text-muted);">Fetching jobs from Google Sheets...</div>
+      </div>
+
+      <!-- Empty -->
+      <div id="jfd-empty" style="display:none;text-align:center;padding:32px 16px;">
+        <div style="font-size:36px;margin-bottom:12px;">📭</div>
+        <div style="font-size:14px;color:var(--white);margin-bottom:6px;" id="jfd-empty-msg">No jobs found</div>
+        <div style="font-size:12px;color:var(--text-muted);">No jobs assigned for the next 7 days. Check back later.</div>
+      </div>
+
+      <!-- Jobs grouped by date -->
+      <div id="jfd-list"></div>
+
+    </div>
+  </div>
 </div>
 
 <!-- PERSONAL STATS MODAL -->
@@ -1910,7 +2042,8 @@ function init() {
         restoreWorkingScreen();
       }
     } else if (saved && saved.screen === 'clockedout') {
-      switchScreen('clockedout');
+      stopAssignedJobsPolling();
+  switchScreen('clockedout');
     } else {
       // Check for saved credentials
       const creds = loadCredentials();
@@ -1934,6 +2067,8 @@ function restoreWorkingScreen() {
   switchScreen('working');
   startStopwatch();
   updateBreakUI();
+  startAssignedJobsPolling();
+  startAssignedJobsPolling();
   scheduleAutoClockOut();
   startGPSTracking(); // also calls requestWakeLock()
   updateOnClockStatus();
@@ -2520,6 +2655,7 @@ function performAutoClockOut() {
 
   state.screen = 'clockedout';
   clearState();
+  stopAssignedJobsPolling();
   switchScreen('clockedout');
   updateOnClockStatus();
   showToast('⏰ Shift auto-ended after 18 hours');
@@ -2909,6 +3045,7 @@ function clockOut() {
   closeModal('modal-clockout');
   clockOutChime();
   clearState();
+  stopAssignedJobsPolling();
   switchScreen('clockedout');
   updateOnClockStatus();
 }
@@ -4066,18 +4203,125 @@ updateInboxBadge();
 updateWhatsNewMenuState();
 
 init();
+
+// ══════════════════════════════════════════
+//  ASSIGNED JOBS — pull from Google Sheets
+//  Polls every 30 seconds while clocked in.
+//  Matches by employee name (case-insensitive).
+// ══════════════════════════════════════════
+let assignedJobsTimer = null;
+let lastAssignedJobs  = [];
+
+function fetchAssignedJobs(manual) {
+  if (!state.employee || !state.employee.name) return;
+
+  // Spin the refresh button if manual
+  if (manual) {
+    const btn = document.getElementById('aj-refresh-btn');
+    if (btn) { btn.classList.add('spinning'); setTimeout(() => btn.classList.remove('spinning'), 450); }
+  }
+
+  const url = SHEETS_URL +
+    '?action=getAssignedJobs' +
+    '&name=' + encodeURIComponent(state.employee.name) +
+    '&date=' + encodeURIComponent(todayDateStr()) +
+    '&t=' + Date.now(); // cache-bust
+
+  fetch(url)
+    .then(r => r.json())
+    .then(data => {
+      if (data && Array.isArray(data.jobs)) {
+        renderAssignedJobs(data.jobs);
+      }
+    })
+    .catch(() => {
+      // silent fail — don't interrupt the employee
+    });
+}
+
+function todayDateStr() {
+  const d = new Date();
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const yyyy = d.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+}
+
+function renderAssignedJobs(jobs) {
+  const card  = document.getElementById('assigned-jobs-card');
+  const list  = document.getElementById('aj-list');
+  const count = document.getElementById('aj-count');
+  const sync  = document.getElementById('aj-last-sync');
+  if (!card || !list) return;
+
+  lastAssignedJobs = jobs;
+
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('en-AU', { hour:'2-digit', minute:'2-digit' });
+  sync.textContent = 'Last updated ' + timeStr;
+
+  if (!jobs || jobs.length === 0) {
+    card.style.display = 'block';
+    count.textContent = '0';
+    list.innerHTML = '<div class="aj-empty">No jobs assigned for today yet.</div>';
+    return;
+  }
+
+  card.style.display = 'block';
+  count.textContent  = jobs.length;
+
+  // Check for new jobs vs last render and show a toast
+  if (lastAssignedJobs.length > 0 && jobs.length > lastAssignedJobs.length) {
+    const diff = jobs.length - lastAssignedJobs.length;
+    showToast(`📋 ${diff} new job${diff > 1 ? 's' : ''} assigned!`);
+  }
+
+  list.innerHTML = jobs.map((j, i) => {
+    const addr  = j.address  || j.Address  || j.location || j.Location || '—';
+    const time  = j.time     || j.Time     || j.scheduledTime || '';
+    const notes = j.notes    || j.Notes    || j.instructions   || '';
+    const status= j.status   || j.Status   || '';
+
+    let metaHtml = '';
+    if (time)   metaHtml += `<span>🕐 ${time}</span>`;
+    if (notes)  metaHtml += `<span>📝 ${notes}</span>`;
+    if (status) metaHtml += `<span style="color:var(--gold);">● ${status}</span>`;
+
+    return `
+    <div class="aj-item">
+      <div class="aj-num">${i+1}</div>
+      <div class="aj-info">
+        <div class="aj-addr">${addr}</div>
+        ${metaHtml ? `<div class="aj-meta">${metaHtml}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function startAssignedJobsPolling() {
+  fetchAssignedJobs(false); // fetch immediately
+  clearInterval(assignedJobsTimer);
+  assignedJobsTimer = setInterval(() => fetchAssignedJobs(false), 30000);
+}
+
+function stopAssignedJobsPolling() {
+  clearInterval(assignedJobsTimer);
+  assignedJobsTimer = null;
+  const card = document.getElementById('assigned-jobs-card');
+  if (card) card.style.display = 'none';
+}
+
 </script>
 
 <script>
 if('serviceWorker' in navigator){
-  const swCode=atob('Y29uc3QgQ0FDSEVfVkVSU0lPTj0ncGktdjEnO3NlbGYuYWRkRXZlbnRMaXN0ZW5lcignaW5zdGFsbCcsZT0+e3NlbGYuc2tpcFdhaXRpbmcoKTt9KTtzZWxmLmFkZEV2ZW50TGlzdGVuZXIoJ2FjdGl2YXRlJyxlPT57ZS53YWl0VW50aWwoc2VsZi5jbGllbnRzLmNsYWltKCkpO30pO3NlbGYuYWRkRXZlbnRMaXN0ZW5lcignZmV0Y2gnLGU9PntpZihlLnJlcXVlc3QubWV0aG9kIT09J0dFVCcpcmV0dXJuO2UucmVzcG9uZFdpdGgoZmV0Y2goZS5yZXF1ZXN0KS50aGVuKHI9Pntjb25zdCBjPXIuY2xvbmUoKTtjYWNoZXMub3BlbihDQUNIRV9WRVJTSU9OKS50aGVuKGNhY2hlPT5jYWNoZS5wdXQoZS5yZXF1ZXN0LGMpKTtyZXR1cm4gcjt9KS5jYXRjaCgoKT0+Y2FjaGVzLm1hdGNoKGUucmVxdWVzdCkpKTt9KTs=');
+  const swCode=atob('Y29uc3QgQ0FDSEVfVkVSU0lPTj0ncGktdjInO3NlbGYuYWRkRXZlbnRMaXN0ZW5lcignaW5zdGFsbCcsZT0+e3NlbGYuc2tpcFdhaXRpbmcoKTt9KTtzZWxmLmFkZEV2ZW50TGlzdGVuZXIoJ2FjdGl2YXRlJyxlPT57ZS53YWl0VW50aWwoc2VsZi5jbGllbnRzLmNsYWltKCkpO30pO3NlbGYuYWRkRXZlbnRMaXN0ZW5lcignZmV0Y2gnLGU9PntpZihlLnJlcXVlc3QubWV0aG9kIT09J0dFVCcpcmV0dXJuO2UucmVzcG9uZFdpdGgoZmV0Y2goZS5yZXF1ZXN0KS50aGVuKHI9Pntjb25zdCBjPXIuY2xvbmUoKTtjYWNoZXMub3BlbihDQUNIRV9WRVJTSU9OKS50aGVuKGNhY2hlPT5jYWNoZS5wdXQoZS5yZXF1ZXN0LGMpKTtyZXR1cm4gcjt9KS5jYXRjaCgoKT0+Y2FjaGVzLm1hdGNoKGUucmVxdWVzdCkpKTt9KTs=');
   const blob=new Blob([swCode],{type:'text/javascript'});
   const swUrl=URL.createObjectURL(blob);
   window.addEventListener('load',async()=>{
     try{
       const reg=await navigator.serviceWorker.register(swUrl,{scope:'./'});
-      reg.update();
-      setInterval(()=>reg.update(),60000);
+      reg.update();setInterval(()=>reg.update(),60000);
       reg.addEventListener('updatefound',()=>{
         const nw=reg.installing;
         nw.addEventListener('statechange',()=>{
@@ -4089,11 +4333,229 @@ if('serviceWorker' in navigator){
           }
         });
       });
-      let refreshing=false;
-      navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!refreshing){refreshing=true;window.location.reload();}});
+      let r=false;
+      navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!r){r=true;window.location.reload();}});
     }catch(e){console.log('SW:',e.message);}
   });
 }
+
+// ══════════════════════════════════════════
+//  JOBS FOR THE DAY MODAL
+//  - No clock-in required
+//  - Name persisted in localStorage
+//  - Shows next 7 days grouped by date
+//  - Pulls live from Google Sheets
+// ══════════════════════════════════════════
+const JFD_NAME_KEY = 'pi_jfd_name';
+
+function openJobsForDay() {
+  document.getElementById('modal-jobs-day').classList.add('open');
+
+  // Pre-fill name from: active session → saved creds → saved jfd name
+  const input = document.getElementById('jfd-name-input');
+  let savedName = '';
+  if (state.employee && state.employee.name) {
+    savedName = state.employee.name;
+  } else {
+    const creds = loadCredentials();
+    if (creds && creds.name) savedName = creds.name;
+    else {
+      try { savedName = localStorage.getItem(JFD_NAME_KEY) || ''; } catch(e) {}
+    }
+  }
+
+  if (input) input.value = savedName;
+
+  // Reset UI
+  document.getElementById('jfd-loading').style.display = 'none';
+  document.getElementById('jfd-empty').style.display = 'none';
+  document.getElementById('jfd-list').innerHTML = '';
+  document.getElementById('jfd-sync').textContent = '';
+  document.getElementById('jfd-refresh-btn').style.display = 'none';
+
+  if (savedName) {
+    // Auto-fetch if we already know the name
+    fetchJobsForDayModal();
+  } else {
+    document.getElementById('jfd-name-hint').textContent = 'Enter your name to see your assigned jobs.';
+  }
+}
+
+function closeJobsForDay() {
+  document.getElementById('modal-jobs-day').classList.remove('open');
+}
+
+function onJfdNameInput() {
+  document.getElementById('jfd-name-hint').textContent = '';
+  // Clear results when name changes
+  document.getElementById('jfd-list').innerHTML = '';
+  document.getElementById('jfd-empty').style.display = 'none';
+  document.getElementById('jfd-sync').textContent = '';
+  document.getElementById('jfd-refresh-btn').style.display = 'none';
+}
+
+function fetchJobsForDayModal() {
+  const input = document.getElementById('jfd-name-input');
+  const name  = input ? input.value.trim() : '';
+
+  if (!name) {
+    document.getElementById('jfd-name-hint').textContent = '⚠️ Please enter your name first.';
+    if (input) input.focus();
+    return;
+  }
+
+  // Save name for next time
+  try { localStorage.setItem(JFD_NAME_KEY, name); } catch(e) {}
+  document.getElementById('jfd-name-hint').textContent = '';
+
+  // Show loading
+  document.getElementById('jfd-loading').style.display = 'block';
+  document.getElementById('jfd-empty').style.display = 'none';
+  document.getElementById('jfd-list').innerHTML = '';
+  document.getElementById('jfd-refresh-btn').style.display = 'none';
+
+  // Build a date range: today through today+6
+  const dateFrom = todayDateStr();
+  const dateTo   = offsetDateStr(6);
+
+  const url = SHEETS_URL +
+    '?action=getAssignedJobs7Days' +
+    '&name='     + encodeURIComponent(name) +
+    '&dateFrom=' + encodeURIComponent(dateFrom) +
+    '&dateTo='   + encodeURIComponent(dateTo) +
+    '&t='        + Date.now();
+
+  fetch(url)
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById('jfd-loading').style.display = 'none';
+      document.getElementById('jfd-refresh-btn').style.display = 'inline-block';
+
+      const jobs = (data && Array.isArray(data.jobs)) ? data.jobs : [];
+      renderJobsForDayModal(name, jobs);
+      updateJobsDayBadge(jobs.length);
+
+      const timeStr = new Date().toLocaleTimeString('en-AU', { hour:'2-digit', minute:'2-digit' });
+      document.getElementById('jfd-sync').textContent = 'Updated ' + timeStr;
+    })
+    .catch(() => {
+      document.getElementById('jfd-loading').style.display = 'none';
+      document.getElementById('jfd-refresh-btn').style.display = 'inline-block';
+      document.getElementById('jfd-list').innerHTML =
+        '<div style="text-align:center;padding:24px;color:var(--danger);font-size:13px;">⚠️ Could not reach Google Sheets.<br><span style="color:var(--text-muted);font-size:11px;margin-top:4px;display:block;">Check your connection and tap Refresh.</span></div>';
+    });
+}
+
+function renderJobsForDayModal(name, jobs) {
+  const list  = document.getElementById('jfd-list');
+  const empty = document.getElementById('jfd-empty');
+
+  if (!jobs || jobs.length === 0) {
+    empty.style.display = 'block';
+    document.getElementById('jfd-empty-msg').textContent = 'No jobs found for ' + name;
+    list.innerHTML = '';
+    return;
+  }
+
+  empty.style.display = 'none';
+
+  // Group by date
+  const grouped = {};
+  jobs.forEach(j => {
+    const d = j.date || j.Date || 'Unscheduled';
+    if (!grouped[d]) grouped[d] = [];
+    grouped[d].push(j);
+  });
+
+  // Sort dates ascending
+  const sortedDates = Object.keys(grouped).sort((a, b) => {
+    if (a === 'Unscheduled') return 1;
+    if (b === 'Unscheduled') return -1;
+    const pa = a.split('/'), pb = b.split('/');
+    const da = new Date(pa[2], pa[1]-1, pa[0]);
+    const db = new Date(pb[2], pb[1]-1, pb[0]);
+    return da - db;
+  });
+
+  const todayStr = todayDateStr();
+
+  list.innerHTML = sortedDates.map(dateKey => {
+    const dayJobs = grouped[dateKey];
+    const isToday = dateKey === todayStr;
+
+    // Format date label
+    let dateLabel = dateKey;
+    if (dateKey !== 'Unscheduled') {
+      try {
+        const parts = dateKey.split('/');
+        const d = new Date(parts[2], parts[1]-1, parts[0]);
+        dateLabel = d.toLocaleDateString('en-AU', { weekday:'long', day:'numeric', month:'long' });
+      } catch(e) {}
+    }
+
+    const jobCards = dayJobs.map((j, i) => {
+      const addr   = j.address || j.Address  || j.location || j.Location || '—';
+      const time   = j.time    || j.Time     || j.scheduledTime || '';
+      const notes  = j.notes   || j.Notes    || j.instructions  || '';
+      const status = j.status  || j.Status   || '';
+
+      const statusColor = status.toLowerCase().includes('done') || status.toLowerCase().includes('complet')
+        ? 'var(--success)'
+        : status.toLowerCase().includes('progress')
+          ? '#81d8d0'
+          : 'var(--gold)';
+
+      return `
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.18);border-radius:12px;padding:13px 15px;margin-bottom:8px;">
+        <div style="display:flex;align-items:flex-start;gap:11px;">
+          <div style="width:26px;height:26px;border-radius:50%;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.35);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0;margin-top:1px;">${i+1}</div>
+          <div style="flex:1;">
+            <div style="font-size:14px;color:var(--white);font-weight:600;line-height:1.4;margin-bottom:5px;">${addr}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+              ${time   ? `<span style="font-size:11px;color:var(--text-muted);">🕐 ${time}</span>` : ''}
+              ${status ? `<span style="font-size:11px;font-weight:600;color:${statusColor};">● ${status}</span>` : ''}
+            </div>
+            ${notes ? `<div style="margin-top:8px;background:rgba(255,255,255,0.04);border-left:2px solid rgba(201,168,76,0.35);border-radius:0 6px 6px 0;padding:7px 10px;font-size:12px;color:var(--text-muted);line-height:1.5;">📝 ${notes}</div>` : ''}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    return `
+    <div style="margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+        <div style="font-size:12px;font-weight:700;color:${isToday ? 'var(--gold)' : 'var(--text-muted)'};letter-spacing:0.5px;text-transform:uppercase;">
+          ${isToday ? '⭐ Today — ' : ''}${dateLabel}
+        </div>
+        <div style="flex:1;height:1px;background:rgba(255,255,255,0.07);"></div>
+        <div style="font-size:10px;color:var(--text-muted);">${dayJobs.length} job${dayJobs.length !== 1 ? 's' : ''}</div>
+      </div>
+      ${jobCards}
+    </div>`;
+  }).join('');
+}
+
+function updateJobsDayBadge(count) {
+  const badge = document.getElementById('menu-jobs-badge');
+  if (!badge) return;
+  if (count > 0) {
+    badge.textContent = count;
+    badge.style.display = 'inline-flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function offsetDateStr(days) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  return dd + '/' + mm + '/' + d.getFullYear();
+}
+
+
+
 </script>
 </body>
 </html>
