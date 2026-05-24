@@ -4205,6 +4205,48 @@ updateWhatsNewMenuState();
 init();
 
 // ══════════════════════════════════════════
+//  JSONP HELPER FOR GOOGLE APPS SCRIPT
+//  fetch() breaks on GAS redirects (CORS).
+//  JSONP via <script> tag always works.
+// ══════════════════════════════════════════
+function sheetsJsonp(params, callback) {
+  const cbName = 'gascb_' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
+
+  // Timeout after 10 seconds
+  const timer = setTimeout(() => {
+    cleanup();
+    callback({ __error: 'timeout' });
+  }, 10000);
+
+  function cleanup() {
+    clearTimeout(timer);
+    delete window[cbName];
+    const el = document.getElementById(cbName);
+    if (el) el.remove();
+  }
+
+  window[cbName] = function(data) {
+    cleanup();
+    callback(data);
+  };
+
+  let url = SHEETS_URL + '?callback=' + cbName;
+  for (const key in params) {
+    url += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
+  }
+  url += '&t=' + Date.now();
+
+  const script = document.createElement('script');
+  script.id  = cbName;
+  script.src = url;
+  script.onerror = function() {
+    cleanup();
+    callback({ __error: 'network' });
+  };
+  document.head.appendChild(script);
+}
+
+// ══════════════════════════════════════════
 //  ASSIGNED JOBS — pull from Google Sheets
 //  Polls every 30 seconds while clocked in.
 //  Matches by employee name (case-insensitive).
@@ -4221,22 +4263,16 @@ function fetchAssignedJobs(manual) {
     if (btn) { btn.classList.add('spinning'); setTimeout(() => btn.classList.remove('spinning'), 450); }
   }
 
-  const url = SHEETS_URL +
-    '?action=getAssignedJobs' +
-    '&name=' + encodeURIComponent(state.employee.name) +
-    '&date=' + encodeURIComponent(todayDateStr()) +
-    '&t=' + Date.now(); // cache-bust
-
-  fetch(url)
-    .then(r => r.json())
-    .then(data => {
-      if (data && Array.isArray(data.jobs)) {
-        renderAssignedJobs(data.jobs);
-      }
-    })
-    .catch(() => {
-      // silent fail — don't interrupt the employee
-    });
+  sheetsJsonp({
+    action: 'getAssignedJobs',
+    name:   state.employee.name,
+    date:   todayDateStr()
+  }, function(data) {
+    if (data && Array.isArray(data.jobs)) {
+      renderAssignedJobs(data.jobs);
+    }
+    // silent fail on error — don't interrupt the employee
+  });
 }
 
 function todayDateStr() {
@@ -4418,32 +4454,30 @@ function fetchJobsForDayModal() {
   const dateFrom = todayDateStr();
   const dateTo   = offsetDateStr(6);
 
-  const url = SHEETS_URL +
-    '?action=getAssignedJobs7Days' +
-    '&name='     + encodeURIComponent(name) +
-    '&dateFrom=' + encodeURIComponent(dateFrom) +
-    '&dateTo='   + encodeURIComponent(dateTo) +
-    '&t='        + Date.now();
+  // Use JSONP instead of fetch() — Google Apps Script redirects break
+  // CORS headers on fetch(), but JSONP works perfectly with GAS.
+  sheetsJsonp({
+    action:   'getAssignedJobs7Days',
+    name:     name,
+    dateFrom: dateFrom,
+    dateTo:   dateTo
+  }, function(data) {
+    document.getElementById('jfd-loading').style.display = 'none';
+    document.getElementById('jfd-refresh-btn').style.display = 'inline-block';
 
-  fetch(url)
-    .then(r => r.json())
-    .then(data => {
-      document.getElementById('jfd-loading').style.display = 'none';
-      document.getElementById('jfd-refresh-btn').style.display = 'inline-block';
-
-      const jobs = (data && Array.isArray(data.jobs)) ? data.jobs : [];
-      renderJobsForDayModal(name, jobs);
-      updateJobsDayBadge(jobs.length);
-
-      const timeStr = new Date().toLocaleTimeString('en-AU', { hour:'2-digit', minute:'2-digit' });
-      document.getElementById('jfd-sync').textContent = 'Updated ' + timeStr;
-    })
-    .catch(() => {
-      document.getElementById('jfd-loading').style.display = 'none';
-      document.getElementById('jfd-refresh-btn').style.display = 'inline-block';
+    if (data && data.__error) {
       document.getElementById('jfd-list').innerHTML =
         '<div style="text-align:center;padding:24px;color:var(--danger);font-size:13px;">⚠️ Could not reach Google Sheets.<br><span style="color:var(--text-muted);font-size:11px;margin-top:4px;display:block;">Check your connection and tap Refresh.</span></div>';
-    });
+      return;
+    }
+
+    const jobs = (data && Array.isArray(data.jobs)) ? data.jobs : [];
+    renderJobsForDayModal(name, jobs);
+    updateJobsDayBadge(jobs.length);
+
+    const timeStr = new Date().toLocaleTimeString('en-AU', { hour:'2-digit', minute:'2-digit' });
+    document.getElementById('jfd-sync').textContent = 'Updated ' + timeStr;
+  });
 }
 
 function renderJobsForDayModal(name, jobs) {
