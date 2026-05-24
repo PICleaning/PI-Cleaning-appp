@@ -895,6 +895,62 @@
     cursor: pointer;
   }
 
+  /* ── TIMESHEET PERIOD SELECTOR ── */
+  .ts-period-bar {
+    display: flex; gap: 6px;
+    padding: 12px 16px 0;
+    flex-shrink: 0;
+  }
+  .ts-period-tab {
+    flex: 1; padding: 9px 4px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,168,76,0.15);
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px; font-weight: 600;
+    cursor: pointer; text-align: center;
+    transition: all 0.18s;
+    letter-spacing: 0.3px;
+  }
+  .ts-period-tab.active {
+    background: rgba(201,168,76,0.14);
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+  .ts-period-tab:active { transform: scale(0.97); }
+  .ts-period-inputs {
+    padding: 10px 16px 0;
+    display: none;
+    flex-shrink: 0;
+  }
+  .ts-period-inputs.visible { display: block; }
+  .ts-period-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .ts-period-row label { font-size: 11px; color: var(--text-muted); width: 28px; flex-shrink: 0; }
+  .ts-period-row input[type="date"],
+  .ts-period-row select {
+    flex: 1; background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 8px; padding: 9px 10px;
+    font-size: 13px; color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    outline: none; appearance: none; -webkit-appearance: none;
+  }
+  .ts-period-row input[type="date"]:focus,
+  .ts-period-row select:focus { border-color: var(--gold); }
+  .ts-period-row select option { background: var(--navy-mid); color: var(--white); }
+  .ts-period-apply {
+    width: 100%; padding: 9px;
+    background: rgba(201,168,76,0.12);
+    border: 1px solid rgba(201,168,76,0.35);
+    border-radius: 8px;
+    color: var(--gold); font-family: 'DM Sans', sans-serif;
+    font-size: 12px; font-weight: 700;
+    cursor: pointer; transition: all 0.18s;
+    margin-top: 2px;
+  }
+  .ts-period-apply:active { transform: scale(0.98); }
+
   /* ── TIMESHEET MODAL ── */
   .ts-modal-overlay {
     display: none; position: fixed; inset: 0; z-index: 600;
@@ -1486,6 +1542,17 @@
         For any questions about the app, please contact your manager or the PI Cleaning Services administration team.
       </div>
 
+      <div>
+        <div style="color:var(--white);font-weight:600;margin-bottom:4px;">📅 Selecting a Timesheet Period (New in v1.7.2)</div>
+        In <strong style="color:var(--white);">My Timesheets</strong> (in the hamburger menu), you can now choose exactly which shifts to view or export using the three tabs at the top:
+        <ul style="margin-top:8px;padding-left:16px;display:flex;flex-direction:column;gap:5px;">
+          <li><strong style="color:var(--gold);">Date Range</strong> — pick a From and To date, then tap <em>Apply</em> to see only shifts within that window.</li>
+          <li><strong style="color:var(--gold);">Month</strong> — select a month and year, then tap <em>Apply</em> to view that month's shifts.</li>
+          <li><strong style="color:var(--gold);">All Time</strong> — shows your complete shift history stored on this device (up to 1 year).</li>
+        </ul>
+        The period you choose applies to <strong style="color:var(--white);">everything</strong> — the shift list, CSV download, PDF, and WhatsApp share all export the exact period you selected.
+      </div>
+
     </div>
 
     <button class="modal-btn" onclick="closeModal('modal-tour')" style="margin-top:20px;">Got It</button>
@@ -1596,7 +1663,7 @@
       <span>App Guide</span>
     </div>
   </div>
-  <div class="menu-footer">PI Cleaning Services © 2025<br><span style="font-size:10px;color:rgba(138,155,181,0.5);letter-spacing:0.5px;">Current version v1.7.1</span></div>
+  <div class="menu-footer">PI Cleaning Services © 2025<br><span style="font-size:10px;color:rgba(138,155,181,0.5);letter-spacing:0.5px;">Current version v1.7.2</span></div>
 </div>
 
 <!-- JOBS FOR THE DAY MODAL -->
@@ -1725,8 +1792,49 @@
     <div class="ts-modal-head">
       <div class="ts-handle"></div>
       <div class="ts-title">My <span>Timesheets</span></div>
-      <div class="ts-subtitle">Last 365 days — stored on device, deleted after 1 year</div>
+      <div class="ts-subtitle" id="ts-subtitle-label">Last 365 days — stored on device, deleted after 1 year</div>
     </div>
+
+    <!-- Period selector tabs -->
+    <div class="ts-period-bar">
+      <button class="ts-period-tab active" id="ts-tab-range"    onclick="setTsPeriod('range')">Date Range</button>
+      <button class="ts-period-tab"        id="ts-tab-month"    onclick="setTsPeriod('month')">Month</button>
+      <button class="ts-period-tab"        id="ts-tab-alltime"  onclick="setTsPeriod('alltime')">All Time</button>
+    </div>
+
+    <!-- Date range inputs (shown for 'range') -->
+    <div class="ts-period-inputs" id="ts-inputs-range">
+      <div class="ts-period-row">
+        <label>From</label>
+        <input type="date" id="ts-date-from">
+      </div>
+      <div class="ts-period-row">
+        <label>To</label>
+        <input type="date" id="ts-date-to">
+      </div>
+      <button class="ts-period-apply" onclick="applyTsPeriod()">Apply</button>
+    </div>
+
+    <!-- Month + year inputs (shown for 'month') -->
+    <div class="ts-period-inputs" id="ts-inputs-month">
+      <div class="ts-period-row">
+        <label>Month</label>
+        <select id="ts-sel-month">
+          <option value="0">January</option><option value="1">February</option>
+          <option value="2">March</option><option value="3">April</option>
+          <option value="4">May</option><option value="5">June</option>
+          <option value="6">July</option><option value="7">August</option>
+          <option value="8">September</option><option value="9">October</option>
+          <option value="10">November</option><option value="11">December</option>
+        </select>
+      </div>
+      <div class="ts-period-row">
+        <label>Year</label>
+        <select id="ts-sel-year"></select>
+      </div>
+      <button class="ts-period-apply" onclick="applyTsPeriod()">Apply</button>
+    </div>
+
     <div class="ts-scroll" id="ts-scroll-content">
       <div class="ts-empty">
         <div class="ts-empty-icon">📋</div>
@@ -3227,9 +3335,106 @@ function recordShiftToTimesheets(shiftData) {
 }
 
 // ══════════════════════════════════════════
+//  TIMESHEET PERIOD STATE
+// ══════════════════════════════════════════
+let tsPeriodMode = 'range'; // 'range' | 'month' | 'alltime'
+
+function setTsPeriod(mode) {
+  tsPeriodMode = mode;
+  ['range','month','alltime'].forEach(m => {
+    document.getElementById('ts-tab-' + m).classList.toggle('active', m === mode);
+  });
+  document.getElementById('ts-inputs-range').classList.toggle('visible', mode === 'range');
+  document.getElementById('ts-inputs-month').classList.toggle('visible', mode === 'month');
+  if (mode === 'alltime') {
+    applyTsPeriod();
+  }
+}
+
+function applyTsPeriod() {
+  renderTimesheetList();
+}
+
+// Returns the date-filtered shifts for the current period selection.
+function getFilteredShifts() {
+  const allShifts = loadTimesheets().sort((a, b) => new Date(b.clockInISO) - new Date(a.clockInISO));
+
+  if (tsPeriodMode === 'alltime') {
+    return allShifts;
+  }
+
+  if (tsPeriodMode === 'range') {
+    const fromVal = document.getElementById('ts-date-from').value;
+    const toVal   = document.getElementById('ts-date-to').value;
+    if (!fromVal && !toVal) return allShifts;
+    const fromMs = fromVal ? new Date(fromVal).setHours(0,0,0,0) : 0;
+    const toMs   = toVal   ? new Date(toVal).setHours(23,59,59,999) : Infinity;
+    return allShifts.filter(s => {
+      const t = new Date(s.clockInISO).getTime();
+      return t >= fromMs && t <= toMs;
+    });
+  }
+
+  if (tsPeriodMode === 'month') {
+    const month = parseInt(document.getElementById('ts-sel-month').value, 10);
+    const year  = parseInt(document.getElementById('ts-sel-year').value, 10);
+    return allShifts.filter(s => {
+      const d = new Date(s.clockInISO);
+      return d.getMonth() === month && d.getFullYear() === year;
+    });
+  }
+
+  return allShifts;
+}
+
+// Returns a human-readable label for the current period (used in exports)
+function getTsPeriodLabel() {
+  if (tsPeriodMode === 'alltime') return 'All Time';
+  if (tsPeriodMode === 'range') {
+    const fromVal = document.getElementById('ts-date-from').value;
+    const toVal   = document.getElementById('ts-date-to').value;
+    if (!fromVal && !toVal) return 'All Time';
+    const fmtDate = v => v ? new Date(v).toLocaleDateString('en-AU', { day:'2-digit', month:'short', year:'numeric' }) : '—';
+    return `${fmtDate(fromVal)} – ${fmtDate(toVal)}`;
+  }
+  if (tsPeriodMode === 'month') {
+    const month = parseInt(document.getElementById('ts-sel-month').value, 10);
+    const year  = parseInt(document.getElementById('ts-sel-year').value, 10);
+    const d = new Date(year, month, 1);
+    return d.toLocaleDateString('en-AU', { month: 'long', year: 'numeric' });
+  }
+  return '';
+}
+
+// ══════════════════════════════════════════
 //  TIMESHEET MODAL
 // ══════════════════════════════════════════
 function openTimesheetModal() {
+  // Initialise period UI defaults
+  tsPeriodMode = 'range';
+  ['range','month','alltime'].forEach(m => {
+    document.getElementById('ts-tab-' + m).classList.toggle('active', m === 'range');
+  });
+  document.getElementById('ts-inputs-range').classList.add('visible');
+  document.getElementById('ts-inputs-month').classList.remove('visible');
+
+  // Default date range: last 30 days
+  const today = new Date();
+  const past  = new Date(); past.setDate(today.getDate() - 30);
+  const fmt = d => d.toISOString().slice(0,10);
+  document.getElementById('ts-date-from').value = fmt(past);
+  document.getElementById('ts-date-to').value   = fmt(today);
+
+  // Populate year selector with years present in data
+  const allShifts = loadTimesheets();
+  const years = [...new Set(allShifts.map(s => new Date(s.clockInISO).getFullYear()))].sort((a,b) => b-a);
+  if (!years.includes(today.getFullYear())) years.unshift(today.getFullYear());
+  const ySel = document.getElementById('ts-sel-year');
+  ySel.innerHTML = years.map(y => `<option value="${y}"${y===today.getFullYear()?' selected':''}>${y}</option>`).join('');
+
+  // Default month selector to current month
+  document.getElementById('ts-sel-month').value = today.getMonth();
+
   renderTimesheetList();
   document.getElementById('modal-timesheet').classList.add('open');
 }
@@ -3240,20 +3445,18 @@ function closeTimesheetModal() {
 
 function renderTimesheetList() {
   const container = document.getElementById('ts-scroll-content');
-  const shifts = loadTimesheets();
+  const recent = getFilteredShifts();
 
-  // Filter to last 1 year
-  const sevenDaysAgo = Date.now() - 365 * 24 * 60 * 60 * 1000;
-  const recent = shifts
-    .filter(s => new Date(s.clockInISO).getTime() > sevenDaysAgo)
-    .sort((a, b) => new Date(b.clockInISO) - new Date(a.clockInISO));
+  // Update subtitle
+  const sub = document.getElementById('ts-subtitle-label');
+  if (sub) sub.textContent = getTsPeriodLabel() + ' — stored on device';
 
   if (!recent.length) {
     container.innerHTML = `
       <div class="ts-empty">
         <div class="ts-empty-icon">📋</div>
-        <div>No shifts recorded yet.</div>
-        <div style="font-size:12px;margin-top:6px;">Your shifts will appear here after you clock out for the first time.</div>
+        <div>No shifts found for this period.</div>
+        <div style="font-size:12px;margin-top:6px;">Try adjusting the date range or selecting All Time.</div>
       </div>`;
     return;
   }
@@ -3315,14 +3518,8 @@ function renderTimesheetList() {
 //  DOWNLOAD — CSV
 // ══════════════════════════════════════════
 function downloadTimesheet(format) {
-  const shifts = loadTimesheets();
-  const sevenDaysAgo = Date.now() - 365 * 24 * 60 * 60 * 1000;
-  const recent = shifts
-    .filter(s => new Date(s.clockInISO).getTime() > sevenDaysAgo)
-    .sort((a, b) => new Date(b.clockInISO) - new Date(a.clockInISO));
-
-  if (!recent.length) { showToast('No shifts to export'); return; }
-
+  const recent = getFilteredShifts();
+  if (!recent.length) { showToast('No shifts to export for this period'); return; }
   if (format === 'csv') {
     exportCSV(recent);
   } else {
@@ -3365,6 +3562,8 @@ function exportPDF(shifts) {
   const empId   = shifts[0]?.employeeId   || '';
   const genDate = new Date().toLocaleDateString('en-AU', { day:'2-digit', month:'long', year:'numeric' });
 
+  const periodLabel = getTsPeriodLabel();
+
   // Build table rows
   let tableRows = '';
   shifts.forEach(s => {
@@ -3406,11 +3605,11 @@ function exportPDF(shifts) {
 <div class="header">
   <div>
     <div class="logo">PI <span>Cleaning</span> Services</div>
-    <div style="font-size:11px;color:#888;margin-top:4px;">Employee Timesheet — Last 12 Months</div>
+    <div style="font-size:11px;color:#888;margin-top:4px;">Employee Timesheet — ${periodLabel}</div>
   </div>
   <div class="header-right">
     Generated: ${genDate}<br>
-    Period: Last 12 months
+    Period: ${periodLabel}
   </div>
 </div>
 <div class="emp-block">
@@ -3424,7 +3623,7 @@ function exportPDF(shifts) {
   <tbody>
     ${tableRows}
     <tr class="total-row">
-      <td>TOTAL (12 months)</td>
+      <td>TOTAL (${periodLabel})</td>
       <td>${secToHMS(totalSecs)}</td>
       <td colspan="3">${shifts.length} shift${shifts.length !== 1 ? 's' : ''}</td>
     </tr>
@@ -3450,19 +3649,19 @@ function exportPDF(shifts) {
 //  'app' param: 'wa' = WhatsApp, 'wab' = WA Business
 // ══════════════════════════════════════════
 function shareTimesheetWhatsApp(app) {
-  const shifts = loadTimesheets();
-  if (!shifts.length) { showToast('No timesheet records to share'); return; }
+  const recent = getFilteredShifts();
+  if (!recent.length) { showToast('No timesheet records to share for this period'); return; }
 
-  const recent = shifts.slice(-7);
   const empName = recent[0]?.employeeName || 'Employee';
   const empId   = recent[0]?.employeeId   || '';
   const genDate = new Date().toLocaleDateString('en-AU', { day:'2-digit', month:'long', year:'numeric' });
   const totalSecs = recent.reduce((sum, s) => sum + (s.totalWorkedSecs || 0), 0);
+  const periodLabel = getTsPeriodLabel();
 
   let lines = [];
   lines.push('📋 *PI Cleaning Services — Timesheet*');
   lines.push(`👤 *${empName}*  |  ID: ${empId}`);
-  lines.push(`📅 Generated: ${genDate}`);
+  lines.push(`📅 Generated: ${genDate}  |  Period: ${periodLabel}`);
   lines.push('─────────────────────────');
 
   recent.forEach((s, i) => {
@@ -3478,8 +3677,8 @@ function shareTimesheetWhatsApp(app) {
   });
 
   lines.push('\n─────────────────────────');
-  lines.push(`*Total Hours (${recent.length} shifts): ${secToHMS(totalSecs)}*`);
-  lines.push('\n_Sent via PI Cleaning Services App v1.7.1_');
+  lines.push(`*Total Hours (${recent.length} shift${recent.length !== 1 ? 's' : ''}, ${periodLabel}): ${secToHMS(totalSecs)}*`);
+  lines.push('\n_Sent via PI Cleaning Services App v1.7.2_');
 
   const text = encodeURIComponent(lines.join('\n'));
 
@@ -3612,10 +3811,22 @@ const APP_UPDATES = [
     id: 'update-008',
     version: 'v1.7.1',
     title: 'Extended Auto Clock-Out — 18 Hours ⏱️',
-    isNew: true,
+    isNew: false,
     features: [
       { icon: '⏱️', text: 'Auto clock-out extended from 12 hours to 18 hours — giving you more flexibility for longer shifts without being cut off early', badge: true },
       { icon: '⚠️', text: 'Warning banner still appears 30 minutes before the 18-hour limit so you\'re never caught off guard', badge: true },
+    ]
+  },
+  {
+    id: 'update-009',
+    version: 'v1.7.2',
+    title: 'Flexible Timesheet Period Selection 📅',
+    isNew: true,
+    features: [
+      { icon: '📅', text: 'Select a custom date range — choose a From and To date to view and export only those shifts', badge: true },
+      { icon: '🗓️', text: 'Filter by Month & Year — pick any month and year to see your shifts for that period', badge: true },
+      { icon: '📋', text: 'Download All Time — export your complete shift history in one tap', badge: true },
+      { icon: '⬇', text: 'Period selection applies to CSV, PDF, and WhatsApp share — you always export exactly what you choose to view' },
     ]
   }
 ];
@@ -3663,6 +3874,13 @@ const WN_MAX_CLICKS     = 3;
     // v1.7.1 migration: reset so existing employees see the new update
     if (seen.includes('update-007') && !seen.includes('update-008')) {
       seen = seen.filter(id => id !== 'update-008');
+      localStorage.setItem(WN_SEEN_KEY, JSON.stringify(seen));
+      localStorage.removeItem(WN_CLICK_KEY);
+      localStorage.removeItem(WN_HIDDEN_KEY);
+    }
+    // v1.7.2 migration: reset so existing employees see the new update
+    if (seen.includes('update-008') && !seen.includes('update-009')) {
+      seen = seen.filter(id => id !== 'update-009');
       localStorage.setItem(WN_SEEN_KEY, JSON.stringify(seen));
       localStorage.removeItem(WN_CLICK_KEY);
       localStorage.removeItem(WN_HIDDEN_KEY);
