@@ -3275,8 +3275,25 @@ function dateStr(d) {
 // ══════════════════════════════════════════
 //  HAMBURGER MENU
 // ══════════════════════════════════════════
-function openMenu() {
-  // Show password prompt before opening menu
+async function openMenu() {
+  // Check live lock state from sheet; fall back to cached value if offline
+  var locked = (localStorage.getItem('pi_menu_lock') !== 'off'); // default locked if never set
+  try {
+    var resp = await fetch(SHEETS_URL + '?action=getMenuLock');
+    var data = await resp.json();
+    if (data.state) {
+      locked = (data.state === 'LOCKED');
+      localStorage.setItem('pi_menu_lock', locked ? 'on' : 'off');
+    }
+  } catch(e) { /* use cached value */ }
+
+  if (!locked) {
+    // Lock is OFF — open menu directly, no code needed
+    _doOpenMenu();
+    return;
+  }
+
+  // Lock is ON — show access code prompt
   var overlay = document.getElementById('menu-password-overlay');
   if (overlay) {
     document.getElementById('menu-password-input').value = '';
@@ -3285,7 +3302,6 @@ function openMenu() {
     setTimeout(function(){ document.getElementById('menu-password-input').focus(); }, 100);
   }
 }
-
 function _doOpenMenu() {
   // Update employee chip if logged in
   if (state.employee && state.employee.name) {
