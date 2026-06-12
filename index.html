@@ -1393,8 +1393,8 @@
 
 <!-- CLOCKED OUT -->
 <div id="clockedout" class="screen">
-  <div class="header-emblem" style="width:80px;height:80px;margin-bottom:20px;border-width:2px;">
-    <span style="font-family:'Playfair Display',serif;font-size:32px;font-weight:900;color:var(--gold);">PI</span>
+  <div style="margin-bottom:20px;text-align:center;">
+    <div style="font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:var(--gold);letter-spacing:3px;text-transform:uppercase;opacity:0.8;">Employee Portal</div>
   </div>
   <div class="co-title">Great Work!</div>
   <div class="co-sub">Your shift has been recorded and synced. See you next time!</div>
@@ -1479,6 +1479,29 @@
     </div>
     <button class="modal-btn" onclick="submitReport()">Submit Report</button>
     <button class="modal-cancel" onclick="closeModal('modal-report')">Cancel</button>
+  </div>
+</div>
+
+<!-- MODAL: CLOCK OUT LOCATION (required before confirming) -->
+<div class="modal-overlay" id="modal-clockout-location">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📍 <span>Location Required</span></div>
+    <div style="background:rgba(226,75,74,0.08);border:1px solid rgba(226,75,74,0.3);border-radius:12px;padding:14px 16px;margin-bottom:18px;display:flex;align-items:flex-start;gap:10px;">
+      <span style="font-size:18px;flex-shrink:0;">🚫</span>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--danger);margin-bottom:4px;">Location capture is mandatory</div>
+        <div style="font-size:12px;color:var(--text-muted);line-height:1.6;">You must capture your GPS location before clocking out. This confirms your end-of-shift position and is required by company policy.</div>
+      </div>
+    </div>
+    <div id="co-loc-status" style="min-height:20px;text-align:center;font-size:13px;color:var(--text-muted);margin-bottom:14px;"></div>
+    <button id="co-loc-btn" onclick="captureClockOutLocation()" style="width:100%;background:rgba(201,168,76,0.1);border:1.5px dashed rgba(201,168,76,0.5);border-radius:12px;padding:16px;color:var(--gold);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px;transition:all 0.2s;">
+      <span>📍</span> Capture My Location Now
+    </button>
+    <button id="co-loc-proceed-btn" onclick="proceedToClockOutConfirm()" style="display:none;width:100%;background:linear-gradient(135deg,var(--gold),#a8892e);border:none;border-radius:12px;padding:14px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;color:var(--navy);cursor:pointer;margin-bottom:10px;">
+      ✓ Location Captured — Continue
+    </button>
+    <button class="modal-cancel" onclick="closeModal('modal-clockout-location')">Cancel</button>
   </div>
 </div>
 
@@ -1919,9 +1942,9 @@
 const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwOKy-LdKcREXyjFKmj15EDD3NKBacvpvpkX3n_jO5wGf6rw2kfp_FdzYKloOAlPAw8oA/exec';
 
 // ══════════════════════════════════════════
-//  MAX SHIFT DURATION: 18 hours in ms
+//  MAX SHIFT DURATION: 15 hours in ms
 // ══════════════════════════════════════════
-const MAX_SHIFT_MS = 18 * 60 * 60 * 1000;
+const MAX_SHIFT_MS = 15 * 60 * 60 * 1000;
 
 // ══════════════════════════════════════════
 //  CREDENTIAL MEMORY: 1 year in ms
@@ -2101,7 +2124,6 @@ let state = {
 };
 
 let swInterval = null;
-let autoClockOutTimer = null;
 
 // ══════════════════════════════════════════
 //  INIT — restore from localStorage
@@ -2231,27 +2253,46 @@ function getLocation() {
     st.textContent = '✗ Geolocation not supported';
     return;
   }
-  navigator.geolocation.getCurrentPosition(pos => {
+  function onSuccess(pos) {
     state.gps.lat = pos.coords.latitude.toFixed(6);
     state.gps.lng = pos.coords.longitude.toFixed(6);
     st.className = 'loc-status';
     st.textContent = `✓ GPS captured — resolving address…`;
     checkReady();
-    // Reverse geocode to show human-readable address
     reverseGeocode(state.gps.lat, state.gps.lng, addr => {
       st.textContent = addr ? `✓ ${addr}` : `✓ GPS: ${state.gps.lat}, ${state.gps.lng}`;
     });
-  }, () => {
+  }
+  function onFail(err) {
     st.className = 'loc-status error';
-    st.textContent = '✗ Could not get location. Enable "Always Allow" GPS access.';
-  }, { enableHighAccuracy: true, timeout: 10000 });
+    if (err && err.code === 1) {
+      st.textContent = '✗ Permission denied — allow Location in your browser settings and try again.';
+    } else {
+      st.textContent = '✗ Could not get location. Try again.';
+    }
+  }
+  // Stage 1: high accuracy
+  navigator.geolocation.getCurrentPosition(
+    onSuccess,
+    () => {
+      st.textContent = '⏳ GPS weak — trying network location…';
+      navigator.geolocation.getCurrentPosition(onSuccess, onFail,
+        { enableHighAccuracy: false, timeout: 12000, maximumAge: 120000 });
+    },
+    { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+  );
 }
 
 function getJobLocation() {
   const st = document.getElementById('job-loc-status');
   st.className = 'loc-status';
   st.textContent = '⏳ Fetching location...';
-  navigator.geolocation.getCurrentPosition(pos => {
+  if (!navigator.geolocation) {
+    st.className = 'loc-status error';
+    st.textContent = '✗ Geolocation not supported';
+    return;
+  }
+  function onSuccess(pos) {
     state.jobGps.lat = pos.coords.latitude.toFixed(6);
     state.jobGps.lng = pos.coords.longitude.toFixed(6);
     st.className = 'loc-status';
@@ -2259,10 +2300,24 @@ function getJobLocation() {
     reverseGeocode(state.jobGps.lat, state.jobGps.lng, addr => {
       st.textContent = addr ? `✓ ${addr}` : `✓ GPS: ${state.jobGps.lat}, ${state.jobGps.lng}`;
     });
-  }, () => {
+  }
+  function onFail(err) {
     st.className = 'loc-status error';
-    st.textContent = '✗ Unable to capture location';
-  }, { enableHighAccuracy: true, timeout: 10000 });
+    if (err && err.code === 1) {
+      st.textContent = '✗ Permission denied — allow Location in settings and try again.';
+    } else {
+      st.textContent = '✗ Unable to capture location. Try again.';
+    }
+  }
+  navigator.geolocation.getCurrentPosition(
+    onSuccess,
+    () => {
+      st.textContent = '⏳ GPS weak — trying network location…';
+      navigator.geolocation.getCurrentPosition(onSuccess, onFail,
+        { enableHighAccuracy: false, timeout: 12000, maximumAge: 120000 });
+    },
+    { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+  );
 }
 
 // ══════════════════════════════════════════
@@ -2678,22 +2733,52 @@ function clockIn() {
 }
 
 // ══════════════════════════════════════════
-//  AUTO CLOCK-OUT (12h)
+//  AUTO CLOCK-OUT (15h) — heartbeat enforced
+//  setTimeout alone is killed when the phone
+//  screen locks. We also run a 60-second
+//  setInterval heartbeat AND check on every
+//  visibilitychange so the limit is enforced
+//  even if the timer was silently dropped.
 // ══════════════════════════════════════════
+let autoClockOutTimer    = null;
+let autoClockOutHeartbeat = null;
+
 function scheduleAutoClockOut() {
-  if (autoClockOutTimer) clearTimeout(autoClockOutTimer);
-  const elapsed = Date.now() - new Date(state.clockInTime).getTime();
+  _clearAutoClockOut();
+  const elapsed   = Date.now() - new Date(state.clockInTime).getTime();
   const remaining = MAX_SHIFT_MS - elapsed;
   if (remaining <= 0) { performAutoClockOut(); return; }
 
-  // Show warning at 30 min before
+  // Primary: setTimeout (may be killed by OS on background)
+  autoClockOutTimer = setTimeout(performAutoClockOut, remaining);
+
+  // Secondary: 60-second heartbeat that always fires even when backgrounded
+  autoClockOutHeartbeat = setInterval(() => {
+    if (!state.clockInTime) { _clearAutoClockOut(); return; }
+    const rem = MAX_SHIFT_MS - (Date.now() - new Date(state.clockInTime).getTime());
+    if (rem <= 0) { _clearAutoClockOut(); performAutoClockOut(); }
+  }, 60 * 1000);
+
+  // Warning banner at 30 min before
   const warnAt = remaining - 30 * 60 * 1000;
   if (warnAt > 0) {
     setTimeout(showTimeoutWarning, warnAt);
   } else {
     showTimeoutWarning();
   }
-  autoClockOutTimer = setTimeout(performAutoClockOut, remaining);
+}
+
+// Also enforce on every tab-visible event (catches phone unlock / tab switch back)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && state.clockInTime && state.screen === 'working') {
+    const rem = MAX_SHIFT_MS - (Date.now() - new Date(state.clockInTime).getTime());
+    if (rem <= 0) { _clearAutoClockOut(); performAutoClockOut(); }
+  }
+});
+
+function _clearAutoClockOut() {
+  if (autoClockOutTimer)    { clearTimeout(autoClockOutTimer);      autoClockOutTimer    = null; }
+  if (autoClockOutHeartbeat){ clearInterval(autoClockOutHeartbeat); autoClockOutHeartbeat = null; }
 }
 
 function showTimeoutWarning() {
@@ -2721,6 +2806,7 @@ function performAutoClockOut() {
     state.currentBreakStart = null;
   }
   if (swInterval) clearInterval(swInterval);
+  _clearAutoClockOut();
   stopGPSTracking();
 
   const clockOutTime = new Date();
@@ -2766,7 +2852,7 @@ function performAutoClockOut() {
   stopAssignedJobsPolling();
   switchScreen('clockedout');
   updateOnClockStatus();
-  showToast('⏰ Shift auto-ended after 18 hours');
+  showToast('⏰ Shift auto-ended after 15 hours');
 }
 
 // ══════════════════════════════════════════
@@ -3067,7 +3153,83 @@ function submitReport() {
 //  CLOCK OUT
 // ══════════════════════════════════════════
 function confirmClockOut() {
-  // End active break for preview
+  // Always require a fresh location capture before clock-out
+  state.clockOutGps = null;
+  const statusEl = document.getElementById('co-loc-status');
+  const proceedBtn = document.getElementById('co-loc-proceed-btn');
+  const captureBtn = document.getElementById('co-loc-btn');
+  if (statusEl) statusEl.textContent = 'Tap the button below to capture your current location.';
+  if (proceedBtn) proceedBtn.style.display = 'none';
+  if (captureBtn) { captureBtn.style.opacity = '1'; captureBtn.disabled = false; captureBtn.innerHTML = '<span>📍</span> Capture My Location Now'; }
+  openModal('modal-clockout-location');
+}
+
+function captureClockOutLocation() {
+  const statusEl  = document.getElementById('co-loc-status');
+  const captureBtn = document.getElementById('co-loc-btn');
+  const proceedBtn = document.getElementById('co-loc-proceed-btn');
+
+  if (!navigator.geolocation) {
+    statusEl.innerHTML = '⚠️ Geolocation is not supported on this device. Please ask your manager for help.';
+    statusEl.style.color = 'var(--danger)';
+    return;
+  }
+
+  captureBtn.disabled = true;
+  captureBtn.innerHTML = '<span>⏳</span> Acquiring GPS…';
+  captureBtn.style.opacity = '0.6';
+  statusEl.textContent = 'Getting your location — please wait…';
+  statusEl.style.color = 'var(--text-muted)';
+
+  function onSuccess(pos) {
+    const lat = pos.coords.latitude.toFixed(6);
+    const lng = pos.coords.longitude.toFixed(6);
+    const acc = Math.round(pos.coords.accuracy);
+    state.clockOutGps = { lat, lng, accuracy: acc, ts: new Date().toISOString() };
+    statusEl.style.color = 'var(--success)';
+    statusEl.innerHTML = `✅ Location captured! (±${acc}m)<br><span style="font-size:11px;color:var(--text-muted);">${lat}, ${lng}</span>`;
+    captureBtn.style.display = 'none';
+    proceedBtn.style.display = 'block';
+  }
+
+  function onFail(err) {
+    let msg = '⚠️ ';
+    if (err && err.code === 1) {
+      msg += 'Location permission denied. Go to your browser Settings → Site Settings → Location, allow this site, then tap Try Again.';
+    } else {
+      msg += 'Could not get location. Move to an area with better signal and tap Try Again.';
+    }
+    statusEl.innerHTML = msg;
+    statusEl.style.color = 'var(--danger)';
+    captureBtn.disabled = false;
+    captureBtn.innerHTML = '<span>📍</span> Try Again';
+    captureBtn.style.opacity = '1';
+  }
+
+  // Stage 1: high-accuracy GPS fix (12s budget)
+  navigator.geolocation.getCurrentPosition(
+    onSuccess,
+    () => {
+      // Stage 2: fall back to network/cached location (works indoors & on cold GPS)
+      statusEl.textContent = 'GPS signal weak — trying network location…';
+      navigator.geolocation.getCurrentPosition(
+        onSuccess,
+        onFail,
+        { enableHighAccuracy: false, timeout: 12000, maximumAge: 120000 }
+      );
+    },
+    { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+  );
+}
+
+function proceedToClockOutConfirm() {
+  if (!state.clockOutGps || !state.clockOutGps.lat) {
+    showToast('⚠️ Please capture your location first.');
+    return;
+  }
+  closeModal('modal-clockout-location');
+
+  // Build preview
   let previewBreakSecs = state.totalBreakSecs;
   if (state.onBreak && state.currentBreakStart) {
     previewBreakSecs += Math.floor((Date.now() - new Date(state.currentBreakStart).getTime()) / 1000);
@@ -3077,6 +3239,7 @@ function confirmClockOut() {
     <div class="break-row"><span class="break-key">Total worked</span><span class="break-val">${secToHMS(Math.max(0,elapsed))}</span></div>
     <div class="break-row"><span class="break-key">Breaks taken</span><span class="break-val">${state.breaks.length + (state.onBreak ? 1 : 0)} (${secToMS(previewBreakSecs)})</span></div>
     <div class="break-row"><span class="break-key">Jobs completed</span><span class="break-val">${state.jobs.length}</span></div>
+    <div class="break-row"><span class="break-key">Clock-out GPS</span><span class="break-val" style="color:var(--success);font-size:11px;">✓ Captured</span></div>
   `;
   openModal('modal-clockout');
 }
@@ -3105,7 +3268,7 @@ function clockOut() {
   }
 
   if (swInterval) clearInterval(swInterval);
-  if (autoClockOutTimer) clearTimeout(autoClockOutTimer);
+  _clearAutoClockOut();
   stopGPSTracking();
 
   const clockOutTime = new Date();
@@ -3131,7 +3294,10 @@ function clockOut() {
     breakDetails: state.breaks,
     jobs: state.jobs.length,
     date: dateStr(clockOutTime),
-    autoClockOut: false
+    autoClockOut: false,
+    clockOutLat: state.clockOutGps ? state.clockOutGps.lat : null,
+    clockOutLng: state.clockOutGps ? state.clockOutGps.lng : null,
+    clockOutGpsAccuracy: state.clockOutGps ? state.clockOutGps.accuracy : null
   };
   sendToSheets('CLOCK_OUT', clockOutPayload);
 
@@ -3163,7 +3329,7 @@ function clockOut() {
 // ══════════════════════════════════════════
 function resetApp() {
   if (swInterval) clearInterval(swInterval);
-  if (autoClockOutTimer) clearTimeout(autoClockOutTimer);
+  _clearAutoClockOut();
   stopGPSTracking();
   state = {
     employee: { name:'', id:'', shift:'' },
@@ -3179,7 +3345,8 @@ function resetApp() {
     photoFiles: [],
     screen: 'clockin',
     _savedCreds: null,
-    liveGps: null
+    liveGps: null,
+    clockOutGps: null
   };
   clearState();
   document.getElementById('emp-name').value = '';
