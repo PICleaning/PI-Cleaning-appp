@@ -3491,9 +3491,9 @@ function _doOpenMenu() {
 
 function submitMenuPassword() {
   var val = document.getElementById('menu-password-input').value.toUpperCase().trim();
-  // Rotating code: matches current slot (15-second window) or previous slot (grace period)
+  // Rotating code: matches current slot (60-second window) or previous slot (grace period)
   var AC_MASTER_KEY = 'EPAdmin2025!';
-  var AC_INTERVAL = 15;
+  var AC_INTERVAL = 60;
   function _acCodeForSlot(slot) {
     var s = String(slot) + AC_MASTER_KEY;
     var h = 0;
