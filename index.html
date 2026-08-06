@@ -544,6 +544,15 @@
     backdrop-filter: blur(8px);
   }
   #modal-tnc.hidden { display: none !important; }
+  #modal-home-screen {
+    display: flex;
+    position: fixed; inset: 0; z-index: 10000;
+    background: rgba(0,0,0,0.92);
+    align-items: center; justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(8px);
+  }
+  #modal-home-screen.hidden { display: none !important; }
   .tnc-box {
     background: var(--navy-mid);
     border: 1px solid var(--gold);
@@ -1177,6 +1186,29 @@
   </div>
 </div>
 
+<!-- ADD TO HOME SCREEN — shown once location access is acknowledged, must be dismissed before shift can start -->
+<div id="modal-home-screen" class="hidden">
+  <div class="tnc-box">
+    <div class="tnc-header">
+      <div class="tnc-badge" style="background:rgba(201,168,76,0.1);border-color:rgba(201,168,76,0.35);color:var(--gold);">📲 One Last Step</div>
+      <div class="tnc-title">Add to <span>Home Screen</span></div>
+      <div class="tnc-subtitle">Please confirm before you start your shift.</div>
+    </div>
+    <div class="tnc-scroll">
+      <div class="tnc-section">
+        <div class="tnc-section-body">
+          <strong>Add Employee Portal to your home screen if you haven't. The app works best when it's stored on your device, as if you're just using the link to clock in and out the app can't calculate your hours accurately and you may not receive your pay for that day.</strong>
+        </div>
+      </div>
+    </div>
+    <div class="tnc-footer">
+      <button class="tnc-agree-btn enabled" id="home-screen-agree-btn" onclick="acknowledgeHomeScreenPrompt()">
+        Got It — Continue
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- SPLASH -->
 <div id="splash" class="screen active">
   <div class="splash-logo">
@@ -1558,7 +1590,7 @@
 
       <div>
         <div style="color:var(--white);font-weight:600;margin-bottom:4px;">⏹ When Location Tracking Stops</div>
-        Your location is only tracked during active shifts. Tracking stops the moment you tap <strong style="color:var(--white);">Clock Out</strong>, or automatically after an 18-hour maximum shift. No data is collected outside of your shift hours.
+        Your location is only tracked during active shifts. Tracking stops the moment you tap <strong style="color:var(--white);">Clock Out</strong>, or automatically after a 15-hour maximum shift. No data is collected outside of your shift hours.
       </div>
 
       <div style="background:rgba(226,75,74,0.08);border:1px solid rgba(226,75,74,0.2);border-radius:10px;padding:12px 14px;font-size:12px;">
@@ -1601,7 +1633,7 @@
 
       <div>
         <div style="color:var(--white);font-weight:600;margin-bottom:4px;">⏹ When Tracking Stops</div>
-        Location tracking stops immediately when you clock out of your shift, or when your shift is automatically ended after the maximum shift duration of 18 hours. No location data is collected outside of active shift hours.
+        Location tracking stops immediately when you clock out of your shift, or when your shift is automatically ended after the maximum shift duration of 15 hours. No location data is collected outside of active shift hours.
       </div>
 
       <div>
@@ -2154,7 +2186,7 @@ function init() {
   // Show splash briefly then route
   setTimeout(() => {
     if (saved && saved.clockInTime && saved.screen === 'working') {
-      // Check if 12h auto-timeout has already passed
+      // Check if 15h auto-timeout has already passed
       const now = Date.now();
       const elapsed = now - new Date(saved.clockInTime).getTime();
       if (elapsed >= MAX_SHIFT_MS) {
@@ -2330,10 +2362,49 @@ let gpsRetryTimer = null;
 // ══════════════════════════════════════════
 //  TERMS & CONDITIONS
 // ══════════════════════════════════════════
+// ══════════════════════════════════════════
+//  ADD-TO-HOME-SCREEN PROMPT — re-shown every 10 hours
+// ══════════════════════════════════════════
+const HOMESCREEN_KEY = 'pi_homescreen_prompt_ts';
+const HOMESCREEN_TTL = 10 * 60 * 60 * 1000; // 10 hours
+
+function shouldShowHomeScreenPrompt() {
+  let raw = null;
+  try { raw = localStorage.getItem(HOMESCREEN_KEY); } catch(e) {}
+  if (!raw) return true;
+  try {
+    const t = JSON.parse(raw);
+    return (Date.now() - t.ts) >= HOMESCREEN_TTL;
+  } catch(e) { return true; }
+}
+
 function tncCheckChanged() {
   const checked = document.getElementById('tnc-check').checked;
   const btn = document.getElementById('tnc-agree-btn');
-  btn.classList.toggle('enabled', checked);
+  if (!checked) {
+    btn.classList.remove('enabled');
+    return;
+  }
+  if (shouldShowHomeScreenPrompt()) {
+    // Lock the Start Shift button until the home-screen prompt is acknowledged
+    btn.classList.remove('enabled');
+    const hsModal = document.getElementById('modal-home-screen');
+    hsModal.classList.remove('hidden');
+    hsModal.style.display = 'flex';
+  } else {
+    btn.classList.add('enabled');
+  }
+}
+
+function acknowledgeHomeScreenPrompt() {
+  try { localStorage.setItem(HOMESCREEN_KEY, JSON.stringify({ ts: Date.now() })); } catch(e) {}
+  const hsModal = document.getElementById('modal-home-screen');
+  hsModal.classList.add('hidden');
+  hsModal.style.display = 'none';
+  // Only unlock Start Shift if the location checkbox is still checked
+  if (document.getElementById('tnc-check').checked) {
+    document.getElementById('tnc-agree-btn').classList.add('enabled');
+  }
 }
 
 function acceptTnC() {
@@ -4034,11 +4105,11 @@ const APP_UPDATES = [
   {
     id: 'update-008',
     version: 'v1.7.1',
-    title: 'Extended Auto Clock-Out — 18 Hours ⏱️',
+    title: 'Extended Auto Clock-Out — 15 Hours ⏱️',
     isNew: false,
     features: [
-      { icon: '⏱️', text: 'Auto clock-out extended from 12 hours to 18 hours — giving you more flexibility for longer shifts without being cut off early', badge: true },
-      { icon: '⚠️', text: 'Warning banner still appears 30 minutes before the 18-hour limit so you\'re never caught off guard', badge: true },
+      { icon: '⏱️', text: 'Auto clock-out extended from 12 hours to 15 hours — giving you more flexibility for longer shifts without being cut off early', badge: true },
+      { icon: '⚠️', text: 'Warning banner still appears 30 minutes before the 15-hour limit so you\'re never caught off guard', badge: true },
     ]
   },
   {
